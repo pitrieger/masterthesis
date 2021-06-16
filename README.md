@@ -2,8 +2,7 @@
 
 
 ## Progress
-### Planning
-![5%](https://progress-bar.dev/5)
+### Planning ![5%](https://progress-bar.dev/5)
 | TODO          |
 |:-------------:|
 | test          |
