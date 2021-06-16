@@ -1,3 +1,9 @@
+# Custom
+/literature
+
+
+
+# R gitignore template
 # History files
 .Rhistory
 .Rapp.history
