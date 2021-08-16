@@ -9,4 +9,5 @@ I am currently finalizing an initial reading of the literature on measurement in
 - B
 - C
 
-<> ![70%](https://progress-bar.dev/70)
+<!--- ![70%](https://progress-bar.dev/70) --->
+
