@@ -9,5 +9,9 @@ I am currently finalizing an initial reading of the literature on measurement in
 - B
 - C
 
+## Log
+16/08/2021 - Finished initial proposal
+
 <!--- ![70%](https://progress-bar.dev/70) --->
+
 
