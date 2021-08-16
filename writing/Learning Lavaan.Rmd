@@ -1,0 +1,143 @@
+---
+title: "Learning Lavaan"
+author: "Pit Rieger"
+date: "8/5/2021"
+output: 
+  pdf_document:
+    number_sections: true
+    extra_dependencies: ["mathtools", "amsmath", "dsfont", "bm", "enumitem", "tikz", "scalerel"]
+---
+
+```{r setup, include = F, echo=F}
+library(lavaan)
+```
+
+# Models created implicitly by lavaan
+Lavaan fits more than just the specified model when fitting a confirmatory factor analysis model. These models are used for tests, etc. In the following, we consider the standard example for CFA that lavaan provides: The Holzinger Swineford dataset and a 3-factor model. We have 9 variables that load as follows: 
+
+$$
+\begin{aligned}
+visual &\sim x_1 + x_2 + x_3 \\
+textual &\sim x_4 + x_5 + x_6 \\
+speed &\sim x_7 + x_8 + x_9 \\
+\end{aligned}
+$$
+
+
+```{r standard, echo=F}
+HS.model = ' visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9'
+HS.fit = cfa(HS.model, HolzingerSwineford1939)
+```
+
+
+The \texttt{baseline} model is a simple model where we assume no latent structure and zero correlation among the manifest variables.
+
+```{r baseline, echo=F}
+  mod_baseline = ' 
+    x1 ~~ x1
+    x2 ~~ x2
+    x3 ~~ x3
+    x4 ~~ x4
+    x5 ~~ x5
+    x6 ~~ x6
+    x7 ~~ x7
+    x8 ~~ x8
+    x9 ~~ x9'
+```
+
+For the \textbf{saturated} model, lavaan allows for arbitrary correlation among all manifest variables such that the covariance matrix is estimated freely.
+
+```{r saturated, echo = F}
+  mod_saturated = '
+    x1 ~~ x1
+    x2 ~~ x1 + x2
+    x3 ~~ x1 + x2 + x3
+    x4 ~~ x1 + x2 + x3 + x4
+    x5 ~~ x1 + x2 + x3 + x4 + x5 
+    x6 ~~ x1 + x2 + x3 + x4 + x5 + x6 
+    x7 ~~ x1 + x2 + x3 + x4 + x5 + x6 + x7 
+    x8 ~~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 
+    x9 ~~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 
+  '
+```
+
+In this framework, model fit via $\chi^2$-test is a simple likelihood ratio test:
+
+$$
+\begin{aligned}
+2 \log\frac{\mathcal{L}\left(\hat\theta^{ML}_{\text{saturated}}\right)}{\mathcal{L}\left(\hat\theta^{ML}_{\text{specified}}\right)} &\sim \chi^2_{d.f.} \\
+2 \left\{ \ell\left(\hat\theta^{ML}_{\text{saturated}}\right) - \ell \left(\hat\theta^{ML}_{\text{specified}}\right)\right\} &\sim\chi^2_{d.f.}
+\end{aligned}
+$$
+
+The degrees of freedom ($d.f.$) can simply be calculated as the difference between the parameters in the specified model versus the saturated (which has $p(p+1)/2$ parameters). 
+
+```{r}
+# fit saturated model
+HS.fit_sat = cfa(mod_saturated, HolzingerSwineford1939)
+
+# manual likelihood ratio statistic
+(LR_stat = 2 * (HS.fit_sat@loglik$loglik - HS.fit@loglik$loglik))
+
+# compute degrees of freedom
+(df = (9 * 10 / 2) -  # parameters in saturated models
+  (9 + # indicator variances
+   9 - 3 + # loadings (first fixed to 1 for each LV)
+   3 + # latent variable variances
+   3))  # latent variable correlations
+# summary(HS.fit)
+
+# compare p-values from manual and lavaan
+pchisq(LR_stat, df, lower.tail = F)
+HS.fit@Fit@test$standard$pvalue
+```
+
+Similarly, as one would expect, the implied covariance matrix of the saturated model equals the sample covariance matrix. Note that lavaan doesn't apply a Bessel correction (so computes variances with $1/n$ instead of $1/(n-1)$).
+
+```{r}
+X = as.matrix(HolzingerSwineford1939[, 7:15])
+X = apply(X, 2, function(x) x - mean(x))
+round(
+  1/nrow(X) * (t(X) %*% X) -  # sample covariance matrix
+  HS.fit_sat@implied$cov[[1]], 2) # implied covariance matrix of saturated model
+```
+
+
+These very principles also apply when comparing nested models, e.g. for testing measurement equivalence: Suppose we have one model that fits unconstrained parameters for subpopulations in our data and others which restrict the intercepts or slopes to be the same. We then have the following comparisons in lavaan: 
+
+```{r}
+fit1 <- cfa(HS.model, data = HolzingerSwineford1939, group = "school")
+
+# weak invariance
+fit2 <- cfa(HS.model, data = HolzingerSwineford1939, group = "school",
+            group.equal = "loadings")
+
+# strong invariance
+fit3 <- cfa(HS.model, data = HolzingerSwineford1939, group = "school",
+            group.equal = c("intercepts", "loadings"))
+
+# model comparison tests
+lavTestLRT(fit1, fit2, fit3)
+```
+
+Which we could also obtain by manually comparing their log likelihoods:
+
+```{r}
+2 * (logLik(fit1) - logLik(fit2))
+2 * (logLik(fit2) - logLik(fit3))
+```
+
+For measurement equivalence, we ideally want the differences between the constrained and unconstrained models to be small such that the $H_0$ of no difference cannot be rejected. The results therefore suggest that the null of weak invariance cannot be rejected while strong invariance certainly doesn't hold across schools.
+
+
+
+
+
+
+
+
+
+
+
