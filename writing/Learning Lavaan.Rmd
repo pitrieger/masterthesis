@@ -81,6 +81,13 @@ HS.fit_sat = cfa(mod_saturated, HolzingerSwineford1939)
 # manual likelihood ratio statistic
 (LR_stat = 2 * (HS.fit_sat@loglik$loglik - HS.fit@loglik$loglik))
 
+# via fitting function
+Sigma = HS.fit@implied$cov[[1]]
+S = HS.fit_sat@implied$cov[[1]]
+n = nrow(HolzingerSwineford1939)
+p = 9
+(n)*(log(det(Sigma)) - log(det(S)) + sum(diag(S%*%solve(Sigma))) - p)
+
 # compute degrees of freedom
 (df = (9 * 10 / 2) -  # parameters in saturated models
   (9 + # indicator variances

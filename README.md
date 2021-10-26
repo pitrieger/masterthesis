@@ -8,10 +8,12 @@ I am currently writing an initial literature review of existing methods for non-
 - Has a systematic simulation study of different detection methods been done?
 - For sim: What metrics can be used for measuring performance of selecting sets of non-invariant items given that the true set is known. Check literature on variable selection with lasso etc. 
 - [minor] Have to use SfS TeX template? 
+- What exactly is connection to differential item functioning? Seems to be to IRT what MI is to CFA.
 
 ## Log
-16/08/2021 - Finished initial proposal
-15/09/2021 - Registered thesis with study administration
+- 16/08/2021 - Finished initial proposal
+- 15/09/2021 - Registered thesis with study administration
+- 05/10/2021 - Officially started writing
 
 <!--- ![70%](https://progress-bar.dev/70) --->
 

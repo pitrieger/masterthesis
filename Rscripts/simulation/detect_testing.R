@@ -1,0 +1,72 @@
+library(tidyverse)
+library(lavaan)
+library(here)
+source(here("Rscripts/simulation", "Simulator_PokropekEtAl.R"))
+source(here("Rscripts/simulation", "Detector_Rieger.R"))
+source(here("Rscripts/simulation", "Detector_ByrneVandeVijer.R"))
+source(here("Rscripts/simulation", "Detector_CheungRensvold.R"))
+source(here("Rscripts/simulation", "Detector_MInd.R"))
+source(here("Rscripts/simulation", "Detector_Janssens.R"))
+MMGFA_files = list.files(here("Rscripts", "KimDeRoover_MixtureMG_FA"))
+MMGFA_files = MMGFA_files[grepl("R$", MMGFA_files)]
+for(j in 1:length(MMGFA_files)){
+  source(here("Rscripts", "KimDeRoover_MixtureMG_FA", MMGFA_files[j]))
+}
+
+# Simulate data
+n = 400
+p = 10
+g = 2
+h = 0.5
+k = 2
+D = sim_PMI(n = n, g = g, p = p, h = h, k = k)
+varnames = paste0("y", 1:p)
+D$p_affected
+
+
+# Fit full model
+  #mod = paste("eta =~", paste(paste0("y", 1:p), collapse = " + "))
+  #fit = cfa(mod, data = D$sim_dat)
+  #summary(fit)
+
+# Own Idea v1: simple
+detect_Rieger_v1(varnames = varnames,
+                 data = D$sim_dat)
+D$p_affected
+
+# Own Idea v2: stepwise
+detect_Rieger_v2(varnames = paste0("y", 1:p),
+                 D$sim_dat)
+D$p_affected
+
+## Via CFI
+# Byrne & van de Vijer (2010):
+detect_ByrneVandeVijer(varnames = paste0("y", 1:p),
+                       D$sim_dat)
+D$p_affected
+
+# Cheung & Rensveld (1999):
+detect_CheungRensvold(varnames = paste0("y", 1:p),
+                      D$sim_dat)
+
+# MInd 
+detect_MInd(varnames = varnames,
+            D$sim_dat)
+D$p_affected
+
+# Janssens
+detect_Janssens(varnames, D$sim_dat)
+D$p_affected
+
+# Via Roover SCA-P
+Y = D$sim_dat[,1:(p+1)]
+
+# groupwise center & aggregate scale
+Y = Y %>% group_by(grp) %>%
+  mutate(across(starts_with("y"), function(x) scale(x, center = T, scale = F)))
+Y = as.matrix(Y[,1:p])
+Y = Y %*% solve(cov(Y))
+
+
+
+

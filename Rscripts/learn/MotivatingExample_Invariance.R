@@ -19,11 +19,11 @@ p1 = ggplot(df1, aes(x = x, y = y, color = envir)) +
   geom_smooth(method = "lm", show.legend = F) + 
   scale_color_manual(values = c("black", "orangered3")) +
   labs(x = expression(hat(eta)),
-       y = expression(hat(epsilon)[1])) + 
+       y = expression(hat(epsilon))) + 
   theme_minimal()
 
 # unequal taus
-Y2 = (envir == 2)*0.9 +  0.6 * eta + rnorm(n, 0.5)
+Y2 = (envir == 2)*0.9 + 0.6 * eta + rnorm(n, 0.5)
 plot(eta, Y2, col = envir, xlab = expression(eta), ylab = expression(Y[1]))
 df2 = data.frame(x = predict(lm(Y2 ~ eta)),
                  y = resid(lm(Y2 ~ eta)),
@@ -34,7 +34,7 @@ p2 = ggplot(df2, aes(x = x, y = y, color = envir)) +
   geom_smooth(method = "lm", show.legend = F) + 
   scale_color_manual(values = c("black", "orangered3")) +
   labs(x = expression(hat(eta)),
-       y = expression(hat(epsilon)[2])) + 
+       y = expression(hat(epsilon))) + 
   theme_minimal()
 
 # unequal lambdas
@@ -49,10 +49,29 @@ p3 = ggplot(df3, aes(x = x, y = y, color = envir)) +
   geom_smooth(method = "lm", show.legend = F) + 
   scale_color_manual(values = c("black", "orangered3")) +
   labs(x = expression(hat(eta)),
-       y = expression(hat(epsilon)[3])) + 
+       y = expression(hat(epsilon))) + 
   theme_minimal()
 p3
-ggarrange(p1, p2, p3, labels = c("A)", "B)", "C)"),
-          ncol = 3)
 
-ggsave(here("figures", "Proposal_Motivating.pdf"), width = 7, height = 4)
+# unequal lambdas & taus
+Y4 = (envir == 2)*0.9 + (0.3+(envir == 2)*0.5) * eta + rnorm(n, 0.5)
+plot(eta, Y4, col = envir, xlab = expression(eta), ylab = expression(Y[4]))
+df4 = data.frame(x = predict(lm(Y4 ~ eta)),
+                 y = resid(lm(Y4 ~ eta)),
+                 envir = as.factor(envir))
+p4 = ggplot(df4, aes(x = x, y = y, color = envir)) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(alpha = 0.6, show.legend = F) +
+  geom_smooth(method = "lm", show.legend = F) + 
+  scale_color_manual(values = c("black", "orangered3")) +
+  labs(x = expression(hat(eta)),
+       y = expression(hat(epsilon))) + 
+  theme_minimal()
+p4
+
+#
+ggarrange(p1, p2, p3, p4,
+          labels = c("A)", "B)", "C)", "D)"),
+          ncol = 2, nrow = 2)
+
+ggsave(here("figures", "Proposal_Motivating2.pdf"), width = 7, height = 5)

@@ -3,12 +3,39 @@ library(lavaan)
 # specify the model
 HS.model <- ' visual =~ x1 + x2 + x3
 textual =~ x4 + x5 + x6
-speed =~ x7 + x8 + x9 '
+speed =~ x7 + x8 + x9 
+x1 ~ 1
+x2 ~ 1
+x3 ~ 1
+x4 ~ 1
+x5 ~ 1
+x6 ~ 1
+x7 ~ 1
+x8 ~ 1
+x9 ~ 1
+'
 # fit the model
 fit <- cfa(HS.model, data = HolzingerSwineford1939)
 # display summary output
 summary(fit, fit.measures = TRUE)
 
+apply(HolzingerSwineford1939[, paste0("x", 1:9)], 2, mean)
+fit@ParTable$est[10:19]
+(ui = 9*10/2 + 9) # = 54 unique infos
+(pars = 9 + # intercepts
+3*(3-1) + # factor loadings with first one per latent variable fixed to 1
+3*4/2 + # factor covariances
+9) # unique variances
+(dfs = ui - pars)
+  
+
+diag(9)
+sum(1:9)
+lel = 6
+sum(lower.tri(matrix(1, ncol = lel, nrow = lel), diag = T))
+lel*(lel + 3) / 2
+
+?lower.tri
 p = predict(fit)
 p
 
@@ -335,3 +362,138 @@ lavTestLRT(fit.grouped, fit.grouped_restrictedloadings, fit.grouped_restricted)
 library(semPlot)
 semPaths(fit, "par", weighted = FALSE, nCharNodes = 7, shapeMan = "rectangle",
          sizeMan = 8, sizeMan2 = 5)
+
+
+
+
+
+
+
+
+
+library(lavaan)
+library(car)
+library(tidyverse)
+
+n = 1000 # number of obs
+k = 2 # number of latent vars
+p = 10 # number of manifest vars
+g = 2 # number of groups/populations/environments
+grp = rep(1:g, each = floor(n/g)) # group index
+gen_error = function(dist = "norm", n, var, ...){
+  dist = paste0("r", dist)
+  p = length(var)
+  sd = sqrt(var)
+  sapply(1:p, function(i) do.call(dist, args = list(n = n, sd = sd[i])))
+}
+
+eta = matrix(rnorm(n*k), ncol = k) # latent vars
+eta = eta + grp - 1
+tau = matrix(rep(0, p*g), nrow = p) # identical intercepts across groups
+psi = matrix(rep(1, p*g), nrow = p) # identical variances across groups
+Lambda = array(c(rep(1, k), rnorm(k*(p-1))), dim = c(k, p, g)) # identical loadings across groups
+
+# violations of invariant loadings
+Lambda[1,4,2]= 3 # fix loading of 1st latent variable on 4th indicator for 2nd group
+Lambda[1,4,1]
+
+# violations of different intercepts
+tau[2, 2] = 2 # change intercept for 2nd indicator for 2nd group
+
+# Generate Data
+X = do.call("rbind", sapply(1:g, 
+                            function(j) t(tau[,j] + t(Lambda[,,j]) %*% t(eta[grp == j,])) +
+                              gen_error(dist = "norm", n = sum(grp == j), var = psi[,j]) , 
+                            simplify = F))
+X = as.data.frame(X)
+colnames(X) = paste0("x", 1:10)
+X$grp = grp
+
+# fit CFA
+mod = "eta1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10"
+fit = cfa(mod, data = X)
+summary(fit)
+
+library(sirt)
+mod = "eta1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+       eta1 ~~ 1*eta1"
+fit.grp <- cfa(mod, data = X, group = "grp")
+summary(fit.grp)
+fit.grp@ParTable
+fit.grp@ParTable$est[fit.grp@ParTable$group == 1 & fit.grp@ParTable$op == "=~"]
+lel = summary(fit.grp)[[1]]
+lel[1:10,]
+lambda = rbind(fit.grp@ParTable$est[fit.grp@ParTable$group == 1 & fit.grp@ParTable$op == "=~"], 
+               fit.grp@ParTable$est[fit.grp@ParTable$group == 2 & fit.grp@ParTable$op == "=~"])
+nu = rbind(fit.grp@ParTable$est[fit.grp@ParTable$group == 1 & fit.grp@ParTable$op == "~1" & fit.grp@ParTable$lhs != "eta1"],
+           fit.grp@ParTable$est[fit.grp@ParTable$group == 2 & fit.grp@ParTable$op == "~1" & fit.grp@ParTable$lhs != "eta1"])
+n = 1000
+wgt <- matrix(sqrt(500), 2, 10)
+mod1 <- sirt::invariance.alignment(lambda, nu, wgt)
+par = summary(mod1)
+class(mod1)
+lambda[,4]
+mod1$lambda.aligned[,4]
+
+nu
+mod1$nu.aligned
+
+mean(eta[grp == 1,1])
+
+
+library(rrcov3way)
+
+congruence(c(1, 2, 1), c(1, 1, 1))
+X = matrix(rnorm(9), 3, 3)
+Y =  matrix(rnorm(9), 3, 3)
+
+sum(X * Y) / sqrt(sum(X^2) * sum(Y^2))
+congruence(X)
+
+
+library(tidyverse)
+library(lavaan)
+library(here)
+source(here("Rscripts", "Simulator_PokropekEtAl.R"))
+MMGFA_files = list.files(here("Rscripts", "KimDeRoover_MixtureMG_FA"))
+MMGFA_files = MMGFA_files[grepl("R$", MMGFA_files)]
+for(j in 1:length(MMGFA_files)){
+  source(here("Rscripts", "KimDeRoover_MixtureMG_FA", MMGFA_files[j]))
+}
+
+# Simulate data
+n = 50
+p = 5
+g = 24
+h = 0.5
+k = 2
+D = sim_PMI(n = n, g = g, p = p, h = h, k = k, discrete = F)
+Lambda_structure = matrix(rep(1, p), ncol = 1)
+X = D$sim_dat[, grepl("^y", colnames(D$sim_dat))]
+X = cbind(D$sim_dat$grp, X)
+
+rm(fit)
+fit = MixtureMG_FA(X, "loadings", nsclust = c(1, 3), nfactors = 1, Maxiter = 10000, nruns = 5, 
+                   design = Lambda_structure, preselect = 50)
+
+Cload = fit$MMGFA_solutions$`2.clusters`$clusterspecific.loadings[1,]
+fit$MMGFA_solutions$`2.clusters`$clustermemberships
+cbind(Cload[[1]], Cload[[2]])
+Cload[[1]] - Cload[[2]]
+D$p_affected
+fit$MMGFA_solutions$`2.clusters`$clustermemberships %>% round
+D$g_affected
+
+Cload = fit$MMGFA_solutions$`3.clusters`$clusterspecific.loadings[1,]
+fit$MMGFA_solutions$`3.clusters`$clustermemberships %>% round
+D$g_affected
+cbind(Cload[[1]], Cload[[2]], Cload[[3]])
+Cload[[1]] - Cload[[2]] - Cload[[3]]
+D$p_affected
+fit$MMGFA_solutions$`2.clusters`$clustermemberships %>% round
+D$g_affected
+
+
+library(rrcov3way)
+congruence(cbind(Cload[[1]], Cload[[2]], Cload[[3]]))
+?congruence
