@@ -68,5 +68,21 @@ Y = as.matrix(Y[,1:p])
 Y = Y %*% solve(cov(Y))
 
 
+# Simulate data
+D = sim_PMI(n = out$`3`$sim_pars$n, 
+            g = out$`3`$sim_pars$g,
+            p = out$`3`$sim_pars$p, 
+            h = out$`3`$sim_pars$h, 
+            k = out$`3`$sim_pars$k)
+varnames = paste0("y", 1:out$`3`$sim_pars$p)
+detect_ByrneVandeVijer(varnames, D$sim_dat)
+D$p_affected
+D$p_affected
 
+detect_MInd(varnames, D$sim_dat)
+
+detect_Janssens(varnames, D$sim_dat)
+
+detect_CheungRensvold(varnames, D$sim_dat)
+D$p_affected
 

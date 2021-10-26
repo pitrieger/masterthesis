@@ -13,8 +13,11 @@
 count_0rows = function(X){ # count number of consecutive rows from head of matrix that contain only zeros
   counter = 0
   if(!any(X[1,] != 0)){
-    while(!any(X[counter+1,]!=0)){
-      counter = counter + 1
+    for(counter in 1:nrow(X)){
+      if(any(X[counter,] != 0)){
+        counter = counter-1
+        break
+      }
     }
   }
   counter
@@ -44,7 +47,12 @@ permuted_noninvariant = function(X, df, alpha){ #obtain noninvariant items
   #dimnames(out) = list(rownames(X)[perms[perm.0rows.max,]],
   #                     colnames(X)[perms[perm.0rows.max,]])
   varnames.permuted = rownames(X)[perms[perm.0rows.max,]] # varnames in order of permutation with max number of consecutive 0 rows from head
-  varnames.permuted[(max(perm.0rows)+1):p] # names of noninvariant varnames (for which chisq>crit in at least one pairing, and thus rejected)
+  if(max(perm.0rows)<p){
+    varnames.permuted[(max(perm.0rows)+1):p] # names of noninvariant varnames (for which chisq>crit in at least one pairing, and thus rejected)
+  } else {
+    NULL
+  }
+
 }
 
 detect_CheungRensvold = function(varnames, data, alpha = 0.05, group.constraints = c("loadings")){

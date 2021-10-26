@@ -12,6 +12,8 @@ source(here("Rscripts/simulation", "Detector_CheungRensvold.R"))
 #  source(here("Rscripts", "KimDeRoover_MixtureMG_FA", MMGFA_files[j]))
 #}
 
+confusion_metric = function()
+
 # parallel RNG seed
 RNGkind("L'Ecuyer-CMRG")
 set.seed(9)
@@ -134,8 +136,8 @@ ggplot(lel,
   geom_line() +
   facet_wrap(~p, labeller = function(x) label_both(x, sep = " = ")) + 
   scale_x_continuous(breaks = c(200, 400, 800))
-  ?geom_pointrange
-?label_both
+  
+
 colnames(sim_param_df)
 #lapply(out, function(x) apply(x$count_identified, 2, function(y) mean(y == x$sim_pars$k, na.rm = T)))
 out$`10`$sim_pars$k
