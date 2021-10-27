@@ -2,6 +2,7 @@ library(tidyverse)
 library(parallel)
 library(lavaan)
 library(here)
+library(RColorBrewer)
 source(here("Rscripts/simulation", "Simulator_PokropekEtAl.R"))
 source(here("Rscripts/simulation", "Detector_Rieger.R"))
 source(here("Rscripts/simulation", "Detector_ByrneVandeVijer.R"))
@@ -15,16 +16,18 @@ options(mc.cores = max(detectCores() - 1, 2))
 set.seed(9)
 
 # Simulation parameters
-sim_param = expand.grid(nsim = 100,
-                        n = c(200, 400, 800),
-                        p = c(3, 4, 5),
-                        g = c(2),
-                        h = c(0.5),
-                        k = c(1, 2), 
-                        interceptbias = c(0, 0.2),
-                        loadingbias = c(0, 0.2))
-sim_param = sim_param[sim_param$k<sim_param$p,]
-sim_param_df = sim_param[sim_param$interceptbias != 0 | sim_param$loadingbias != 0,]
+sim_param_df = expand.grid(nsim = 100,
+                        n = c(200, 500, 1000),
+                        p = c(3, 4, 5, 6),
+                        g = c(2, 4, 8, 16),
+                        h = c(0.25, 0.5),
+                        k = c(1, 2, 3), 
+                        itembias = c(0, 0.25, 0.5))
+#                        interceptbias = c(0, 0.2, 0.4),
+#                       loadingbias = c(0, 0.2, 0.4))
+sim_param_df = sim_param_df[sim_param_df$k<sim_param_df$p & 
+                            (sim_param_df$h * sim_param_df$g) %% 1 == 0,]
+
 sim_param = split(sim_param_df, 1:nrow(sim_param_df))
 sim_out = lapply(sim_param, function(x) set_names(list(x), "sim_param"))
 
@@ -36,20 +39,45 @@ get_confusion = function(pred, true, varnames){
     "FN" = sum(varnames[!varnames %in% pred] %in% true)) # false negative
 }
 
+# get sensitivity and specificity with CIs from confusion matrix output
+get_sensspec = function(x, alpha = 0.05, type = "sensitivity"){
+  stopifnot(type %in% c("sensitivity", "specificity"))
+  if(type == "sensitivity"){
+    r = x[,"TP"]
+    n = r + x[,"FN"]
+  } else {
+    r = x[,"TN"]
+    n = r + x[,"FP"]
+  } 
+  # proportion
+  est = r/n
+  # Clopper-Pearson CIs
+  # get F-values, but use 0 or 1 if est is 0 or 1 
+  lowerF = qf(1-alpha/2, 2*(n-r+1), 2*r)
+  lowerF = ifelse(is.nan(lowerF), round(est), lowerF)
+  upperF = qf(1-alpha/2, 2*(r+1), 2*(n-r))
+  upperF = ifelse(is.nan(upperF), round(est), upperF)
+  #CIs
+  lowerCI = r / (r + (n-r+1)*lowerF)
+  lowerCI = ifelse(is.nan(lowerCI), round(est), lowerCI)
+  upperCI = (r + 1) * upperF / ((n-r) + (r+1)*upperF)
+  data.frame(method = rownames(x), est, lowerCI, upperCI)
+}
+
 # simulation function
 run_sim = function(x) {
+  # simulation parameters
   pars = x$sim_param
-  varnames = paste0("y", 1:pars$p)
+  pars_list = list()
+  for(i in 1:ncol(pars)) pars_list[[i]] = pars[,i]
+  names(pars_list) = colnames(pars)
   
-  D = sim_PMI(n = pars$n,
-              g = pars$g,
-              p = pars$p,
-              h = pars$h,
-              k = pars$k)
+  D = do.call(sim_PMI, pars_list)
+
   # constants
+    varnames = paste0("y", 1:pars$p)
     # varnames of noninvariant items
     noninvariant_true = ifelse(length(D$p_affected)>0, paste0("y", D$p_affected), character())
-    # true number of noninvariant items = TP + FN = sensitivity denominator
     
   # run detectors
     # Janssens
@@ -101,62 +129,84 @@ run_sim = function(x) {
 system.time(out <- mclapply(sim_out, function(x) replicate(x$sim_param$nsim, run_sim(x))))
 save.image(here("data/Prelim_Sim_2021-10-26.RData"))
 
+# compute sensitivity
+out_sensitivity = do.call("rbind", 
+                          lapply(lapply(out, function(l) apply(l, 1:2, function(x) sum(x, na.rm = T))), #sum confusion matrices over replications 
+                                 function(x) get_sensspec(x))) # compute sensitivity
+out_sensitivity = cbind(out_sensitivity, sim_param_df[rep(1:nrow(sim_param_df), each = 6),]) # add simulation parameters
 
-lapply(out, function(l) apply(l, 1:2, function(x) mean(x, na.rm = T)))
-
-
-get_sensspec = function(x, alpha = 0.05, type = "sensitivity"){
-  stopifnot(type %in% c("sensitivity", "specificity"))
-  if(type == "sensitivity"){
-    r = x[,"TP"]
-    n = r + x[,"FN"]
-  } else {
-    r = x[,"TN"]
-    n = r + x[,"FP"]
-  } 
-  # proportion
-  est = r/n
-  # Clopper-Pearson CIs
-    # get F-values, but use 0 or 1 if est is 0 or 1 
-    lowerF = qf(1-alpha/2, 2*(n-r+1), 2*r)
-    lowerF = ifelse(is.nan(lowerF), round(est), lowerF)
-    upperF = qf(1-alpha/2, 2*(r+1), 2*(n-r))
-    upperF = ifelse(is.nan(upperF), round(est), upperF)
-    #CIs
-    lowerCI = r / (r + (n-r+1)*lowerF)
-    lowerCI = ifelse(is.nan(lowerCI), round(est), lowerCI)
-    upperCI = (r + 1) * upperF / ((n-r) + (r+1)*upperF)
-  data.frame(method = rownames(x), est, lowerCI, upperCI)
-}
+# compute specificity
+out_specificity = do.call("rbind", 
+                          lapply(lapply(out, function(l) apply(l, 1:2, function(x) sum(x, na.rm = T))), #sum confusion matrices over replications 
+                                 function(x) get_sensspec(x, type = "specificity"))) # compute specificity
+out_specificity = cbind(out_specificity, sim_param_df[rep(1:nrow(sim_param_df), each = 6),]) # add simulation parameters
 
 
-ggplot(get_sensspec(x), aes(y = est, ymin = lowerCI, ymax = upperCI, x = method)) + 
-  geom_pointrange()
-ggplot(get_sensspec(x, type = "specificity"), aes(y = est, ymin = lowerCI, ymax = upperCI, x = method)) + 
-  geom_pointrange()
+## Generate plots
+  # relabel method names
+  out_sensitivity$method = factor(out_sensitivity$method, 
+                                  levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                                  labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  out_specificity$method = factor(out_specificity$method, 
+                                  levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                                  labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  # theme
+  sensspec_layer = list(geom_pointrange(),
+                        geom_line(show.legend = F),
+                        facet_grid(rows = vars(k), cols = vars(p),
+                                   labeller = function(x) label_both(x, sep = " = ")),
+                        scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)),
+                        scale_color_brewer(type = "qual", palette = 2),
+                        theme_bw(),
+                        theme(strip.background = element_rect(color = "black", fill = "white")))
+  
+  ## SENSITIVITY
+    # Plots for Loadingbias
+    df_p1.1 = out_sensitivity %>% filter(loadingbias == 0.2 &
+                                       interceptbias == 0)
+    ggplot(df_p1.1, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer + 
+      labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
+    
+    # Plots for Interceptbias
+    df_p2.1 = out_sensitivity %>% filter(loadingbias == 0 &
+                                       interceptbias == 0.2)
+    ggplot(df_p2.1, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer + 
+      labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
+    
+    # Plots for Intercept & Loadingbias
+    df_p3.1 = out_sensitivity %>% filter(loadingbias == 0.2 &
+                                         interceptbias == 0.2)
+    ggplot(df_p3.1, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer + 
+      labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  ## SPECIFICITY
+    # Plots for Loadingbias
+    df_p1.2 = out_specificity %>% filter(loadingbias == 0.2 &
+                                         interceptbias == 0)
+    ggplot(df_p1.2, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer +
+      labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
+    
+    # Plots for Interceptbias
+    df_p2.2 = out_specificity %>% filter(loadingbias == 0 &
+                                         interceptbias == 0.2)
+    ggplot(df_p2.2, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer +
+      labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
+    
+    
+    # Plots for Intercept & Loadingbias
+    df_p3.2 = out_specificity %>% filter(loadingbias == 0.2 &
+                                         interceptbias == 0.2)
+    ggplot(df_p3.2, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+      sensspec_layer +
+      labs(y = "Specificity", x = "n", color = "Method", shape = "Method")

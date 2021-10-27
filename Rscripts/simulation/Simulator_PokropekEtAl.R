@@ -16,7 +16,8 @@ sim_PMI = function(n = 1500, #obs
                    itembias = 0.2, # absolute bias for both intercept and loading in affected groups
                    interceptbias = itembias, 
                    loadingbias = itembias,
-                   discrete = T) { # return discretized manifest variables
+                   discrete = T, # return discretized manifest variables
+                   ...) { 
   stopifnot(k<=p,
             (h*g)%%1 == 0, 
             h>=0 & h<=1)
@@ -88,5 +89,6 @@ sim_PMI = function(n = 1500, #obs
                   "p" = p,
                   "k" = k,
                   "h" = h, 
-                  "itembias" = itembias))
+                  "interceptbias" = interceptbias,
+                  "loadingbias" = loadingbias))
 }

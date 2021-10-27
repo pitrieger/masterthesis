@@ -5,6 +5,7 @@ source(here("Rscripts/simulation", "Simulator_PokropekEtAl.R"))
 source(here("Rscripts/simulation", "Detector_Rieger.R"))
 source(here("Rscripts/simulation", "Detector_ByrneVandeVijer.R"))
 source(here("Rscripts/simulation", "Detector_CheungRensvold.R"))
+source(here("Rscripts/simulation", "Detector_CheungRensvold2.R"))
 source(here("Rscripts/simulation", "Detector_MInd.R"))
 source(here("Rscripts/simulation", "Detector_Janssens.R"))
 MMGFA_files = list.files(here("Rscripts", "KimDeRoover_MixtureMG_FA"))
@@ -28,6 +29,8 @@ D$p_affected
   #mod = paste("eta =~", paste(paste0("y", 1:p), collapse = " + "))
   #fit = cfa(mod, data = D$sim_dat)
   #summary(fit)
+  #fit@ParTable
+  #fit = x
 
 # Own Idea v1: simple
 detect_Rieger_v1(varnames = varnames,
@@ -83,6 +86,17 @@ detect_MInd(varnames, D$sim_dat)
 
 detect_Janssens(varnames, D$sim_dat)
 
-detect_CheungRensvold(varnames, D$sim_dat)
+
+
+
+n = 400
+p = 5
+g = 2
+h = 0.5
+k = 2
+D = sim_PMI(n = n, g = g, p = p, h = h, k = k, loadingbias = 0, itembias = 0.2)
+varnames = paste0("y", 1:p)
 D$p_affected
 
+detect_CheungRensvold(varnames, D$sim_dat)
+detect_CheungRensvold2(varnames, D$sim_dat, group.constraints = c("loadings", "intercepts"))
