@@ -43,6 +43,9 @@ detect_Rieger_v2 = function(varnames, data, alpha = 0.05){
   
   while(p.val.min < alpha){
     varnames_it = detected$varnames[-which.min(detected$p.vals)]
+    if(length(varnames_it) <= 1){
+      break
+    }
     detected = detect_Rieger_v1(varnames_it, data, alpha)
     p.val.min = min(detected$p.vals)
   }

@@ -17,14 +17,14 @@ set.seed(9)
 
 # Simulation parameters
 sim_param_df = expand.grid(nsim = 100,
-                        n = c(200, 500, 1000),
-                        p = c(3, 4, 5, 6),
+                        n = c(500),
+                        p = c(3, 4, 5),
                         g = c(2, 4, 8, 16),
                         h = c(0.25, 0.5),
                         k = c(1, 2, 3), 
-                        itembias = c(0, 0.25, 0.5))
-#                        interceptbias = c(0, 0.2, 0.4),
-#                       loadingbias = c(0, 0.2, 0.4))
+                        #itembias = c(0, 0.25, 0.5))
+                       interceptbias = c(0, 0.2),
+                       loadingbias = c(0, 0.2))
 sim_param_df = sim_param_df[sim_param_df$k<sim_param_df$p & 
                             (sim_param_df$h * sim_param_df$g) %% 1 == 0,]
 
