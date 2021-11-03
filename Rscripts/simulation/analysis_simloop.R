@@ -44,66 +44,218 @@ out_df$method = rep(rownames(out$`1`), length(out))
 out_df$id = rep(1:length(out), each = nrow(out$`1`))
 out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
 
+#####################
+#### SENSITIVITY ####
+#####################
+  #########################
+  ## Across all settings ##
+  #########################
+  out_df_sum = out_df %>% filter(itembias > 0) %>% 
+    group_by(method) %>% 
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  out_df_sum = data.frame(method = out_df_sum$method,
+                          n = out_df_sum$TP + out_df_sum$TN + out_df_sum$FP + out_df_sum$FN,
+                           sensitivity = get_sensspec(out_df_sum)$est,
+                           specificity = get_sensspec(out_df_sum, type = "specificity")$est)
+  stargazer(out_df_sum, summary = F)
+  
+  #########################
+  ## Function of n, p, k ##
+  #########################
+  out_df_npk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, n, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_npk = cbind(out_df_npk, get_sensspec(out_df_npk)[,2:4])
+  out_df_npk$method = factor(out_df_npk$method, 
+                                  levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                                  labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_npk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                      x = n, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
+  
+  
+  #########################
+  ## Function of g, p, k ##
+  #########################
+  out_df_gpk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, g, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_gpk = cbind(out_df_gpk, get_sensspec(out_df_gpk)[,2:4])
+  out_df_gpk$method = factor(out_df_gpk$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_gpk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = g, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "g", color = "Method", shape = "Method")
+  
+  
+  #########################
+  ## Function of h, p, k ##
+  #########################
+  out_df_hpk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, h, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_hpk = cbind(out_df_hpk, get_sensspec(out_df_hpk)[,2:4])
+  out_df_hpk$method = factor(out_df_hpk$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_hpk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = h, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "h", color = "Method", shape = "Method")
+
+#####################
+#### SPECIFICITY ####
+#####################
+  #########################
+  ## Function of n, p, k ##
+  #########################
+  out_df_npk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, n, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_npk = cbind(out_df_npk, get_sensspec(out_df_npk, type = "specificity")[,2:4])
+  out_df_npk$method = factor(out_df_npk$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_npk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = n, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
+  
+  
+  #########################
+  ## Function of g, p, k ##
+  #########################
+  out_df_gpk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, g, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_gpk = cbind(out_df_gpk, get_sensspec(out_df_gpk, type = "specificity")[,2:4])
+  out_df_gpk$method = factor(out_df_gpk$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_gpk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = g, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "g", color = "Method", shape = "Method")
+  
+  
+  #########################
+  ## Function of h, p, k ##
+  #########################
+  out_df_hpk = out_df %>% filter(itembias > 0) %>%
+    group_by(method, h, p, k) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_hpk = cbind(out_df_hpk, get_sensspec(out_df_hpk, type = "specificity")[,2:4])
+  out_df_hpk$method = factor(out_df_hpk$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_hpk, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = h, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(k), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "h", color = "Method", shape = "Method")
+
+  
+#######################
+#### Zero itembias ####
+#######################
+# Note that k and h are irrelevant in this case
+# Also, any positive classification is wrong when itembias == 0
+# but the way it is coded, there still are TP & FP classifications, thus 
+# compute accuracy as (TN + FN) / (TN + FN + TP + FP), i.e. how many of all
+#  were classified as not non-invariant out of all, because all are invariant
+
+################################
+#### As function of n, p, g ####
+################################
+out_df_0bias = out_df %>% filter(itembias == 0) %>%
+    group_by(method, n, p, g) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  r = (out_df_0bias$TN + out_df_0bias$FN)
+  n = (out_df_0bias$TN + out_df_0bias$FN + out_df_0bias$TP + out_df_0bias$FP)
+  out_df_0bias$est = r/n
+  lowerF = qf(1-0.05/2, 2*(n-r+1), 2*r)
+  lowerF = ifelse(is.nan(lowerF), round(est), lowerF)
+  upperF = qf(1-0.05/2, 2*(r+1), 2*(n-r))
+  upperF = ifelse(is.nan(upperF), round(est), upperF)
+  #CIs
+  lowerCI = r / (r + (n-r+1)*lowerF)
+  out_df_0bias$lowerCI = ifelse(is.nan(lowerCI), round(est), lowerCI)
+  out_df_0bias$upperCI = (r + 1) * upperF / ((n-r) + (r+1)*upperF)
+  
+      
+  out_df_0bias$method = factor(out_df_0bias$method, 
+                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_0bias, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                         x = n, color = method, shape = method)) + 
+    sensspec_layer + 
+    facet_grid(rows = vars(g), cols = vars(p),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
 
 
 
-#########################
-## Function of n, p, k ##
-#########################
-out_df_npk = out_df %>% filter(itembias > 0) %>%
-  group_by(method, n, p, k) %>%
-  summarize(TP = sum(TP, na.rm = T),
-            TN = sum(TN, na.rm = T),
-            FP = sum(FP, na.rm = T),
-            FN = sum(FN, na.rm = T))
-
-out_df_npk = cbind(out_df_npk, get_sensspec(out_df_npk)[,2:4])
-out_df_npk$method = factor(out_df_npk$method, 
-                                levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                                labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
-
-ggplot(out_df_npk, aes(y = est, ymin = lowerCI, ymax = upperCI,
-                    x = n, color = method, shape = method)) + 
-  sensspec_layer + 
-  facet_grid(rows = vars(k), cols = vars(p),
-             labeller = function(x) label_both(x, sep = " = ")) +
-  labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
-
-
-#########################
-## Function of g, p, k ##
-#########################
-out_df_gpk = out_df %>% filter(itembias > 0) %>%
-  group_by(method, g, p, k) %>%
-  summarize(TP = sum(TP, na.rm = T),
-            TN = sum(TN, na.rm = T),
-            FP = sum(FP, na.rm = T),
-            FN = sum(FN, na.rm = T))
-
-out_df_gpk = cbind(out_df_gpk, get_sensspec(out_df_gpk)[,2:4])
-out_df_gpk$method = factor(out_df_gpk$method, 
-                           levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                           labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
-
-ggplot(out_df_gpk, aes(y = est, ymin = lowerCI, ymax = upperCI,
-                       x = g, color = method, shape = method)) + 
-  sensspec_layer + 
-  facet_grid(rows = vars(k), cols = vars(p),
-             labeller = function(x) label_both(x, sep = " = ")) +
-  labs(y = "Sensitivity", x = "g", color = "Method", shape = "Method")
-
-
-
-
-
-
-
-
-
-
-
-
-# compute sensitivity
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # compute sensitivity
 out_sensitivity = do.call("rbind", 
                           lapply(lapply(out, function(l) apply(l, 1:2, function(x) sum(x, na.rm = T))), #sum confusion matrices over replications 
                                  function(x) get_sensspec(x))) # compute sensitivity
