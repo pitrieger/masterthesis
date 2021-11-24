@@ -3,12 +3,12 @@ library(parallel)
 library(lavaan)
 library(here)
 library(RColorBrewer)
+
+# Load simulator & detectors
 source(here("Rscripts/simulation", "Simulator_PokropekEtAl.R"))
-source(here("Rscripts/simulation", "Detector_Rieger.R"))
-source(here("Rscripts/simulation", "Detector_ByrneVandeVijer.R"))
-source(here("Rscripts/simulation", "Detector_CheungRensvold.R"))
-source(here("Rscripts/simulation", "Detector_MInd.R"))
-source(here("Rscripts/simulation", "Detector_Janssens.R"))
+detectors = list.files(here("Rscripts/simulation")) 
+detectors = detectors[startsWith(detectors, "Detector")]
+sapply(detectors, function(i) source(here("Rscripts/simulation", i)))
 
 # Parallelization setup
 RNGkind("L'Ecuyer-CMRG") # multi-core compatible RNG
@@ -17,14 +17,14 @@ set.seed(9)
 
 # Simulation parameters
 sim_param_df = expand.grid(nsim = 100,
-                        n = c(200, 500, 1000),
+                        n = c(100, 200, 500, 1000),
                         p = c(3, 4, 5, 6),
                         g = c(2, 4, 8, 16),
                         h = c(0.25, 0.5),
-                        k = c(1, 2, 3), 
-                        itembias = c(0, 0.2))
-#                        interceptbias = c(0, 0.2, 0.4),
-#                       loadingbias = c(0, 0.2, 0.4))
+                        k = c(1, 2), 
+                        #itembias = c(0, 0.2))
+                        interceptbias = c(0, 0.2),
+                        loadingbias = c(0, 0.2))
 sim_param_df = sim_param_df[2*sim_param_df$k<sim_param_df$p & 
                             (sim_param_df$h * sim_param_df$g) %% 1 == 0,]
 
@@ -96,7 +96,7 @@ run_sim = function(x) {
     }, error = function(cond){return(rep(NA, 4))},
     silent = T)
     
-    # Cheung & Rensveld (1999):
+    # Cheung & Rensvold (1999):
     ni_C = tryCatch({
       get_confusion(detect_CheungRensvold(varnames, D$sim_dat)$noninvariant, 
                    noninvariant_true, varnames)    
@@ -112,14 +112,14 @@ run_sim = function(x) {
     
     # Own Idea v1: simple
     ni_R1 = tryCatch({
-      get_confusion(detect_Rieger_v1(varnames, D$sim_dat)$noninvariant, 
+      get_confusion(detect_Rieger(varnames, D$sim_dat)$noninvariant, 
                    noninvariant_true, varnames)
     }, error = function(cond){return(rep(NA, 4))},
     silent = T)
     
     # Own Idea v2: stepwise
     ni_R2 = tryCatch({
-      get_confusion(detect_Rieger_v2(varnames, D$sim_dat)$noninvariant, 
+      get_confusion(detect_Rieger_step(varnames, D$sim_dat)$noninvariant, 
                    noninvariant_true, varnames)
     }, error = function(cond){return(rep(NA, 4))},
     silent = T)

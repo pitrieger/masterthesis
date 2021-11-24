@@ -11,7 +11,12 @@ detect_ByrneVandeVijer = function(varnames, data, CFI.delta = 0.01, group.constr
   CFI = numeric(length(models))
   for(j in 1:length(models)){
     fit = cfa(models[j], data = data, group = "grp", group.equal = group.constraints)
-    CFI[j] = as.numeric(fitmeasures(fit, fit.measures = "cfi"))
+    CFI.temp = try(as.numeric(fitmeasures(fit, fit.measures = "cfi")))
+    if(inherits(CFI.temp, "try-error")){
+      CFI[j] = CFI.base # if model couldn't be fitted without item j, identify j as invariant
+    } else {
+      CFI[j] = CFI.temp
+    }
   }
   
   list(varnames = varnames,

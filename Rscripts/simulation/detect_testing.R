@@ -2,7 +2,7 @@ library(tidyverse)
 library(lavaan)
 library(here)
 source(here("Rscripts/simulation", "Simulator_PokropekEtAl.R"))
-source(here("Rscripts/simulation", "Detector_Rieger.R"))
+source(here("Rscripts/simulation", "Detector_Rieger_v3.R"))
 source(here("Rscripts/simulation", "Detector_ByrneVandeVijer.R"))
 source(here("Rscripts/simulation", "Detector_CheungRensvold.R"))
 source(here("Rscripts/simulation", "Detector_CheungRensvold2.R"))
@@ -15,13 +15,16 @@ for(j in 1:length(MMGFA_files)){
 }
 
 # Simulate data
-n = 400
-p = 10
+n = 800
+p = 3
 g = 2
 h = 0.5
-k = 2
+k = 1
 D = sim_PMI(n = n, g = g, p = p, h = h, k = k)
 varnames = paste0("y", 1:p)
+D$p_affected
+detect_ByrneVandeVijer(varnames = paste0("y", 1:p),
+                       D$sim_dat)
 D$p_affected
 
 

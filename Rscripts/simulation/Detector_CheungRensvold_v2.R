@@ -50,7 +50,7 @@ permuted_noninvariant = function(X, df, alpha){ #obtain noninvariant items
 
 }
 
-detect_CheungRensvold2 = function(varnames, data, alpha = 0.05, group.constraints = c("loadings", "intercepts")){
+detect_CheungRensvold = function(varnames, data, alpha = 0.05, group.constraints = c("loadings", "intercepts")){
   p = length(varnames)
   
   # baseline model

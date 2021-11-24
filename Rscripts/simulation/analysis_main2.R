@@ -115,7 +115,7 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
   ## Function of n, p, k ##
   #########################
   out_df_npk = out_df %>% filter(itembias > 0) %>%
-    group_by(method, n, p, k) %>%
+    group_by(method, k) %>%
     summarize(TP = sum(TP, na.rm = T),
               TN = sum(TN, na.rm = T),
               FP = sum(FP, na.rm = T),
@@ -127,10 +127,8 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
                                   labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
   
   {ggplot(out_df_npk, aes(y = est, ymin = lowerCI, ymax = upperCI,
-                      x = n, color = method, shape = method)) + 
+                      x = k, color = method, shape = method)) + 
     sensspec_layer + 
-    facet_grid(rows = vars(k), cols = vars(p),
-               labeller = function(x) label_both(x, sep = " = ")) +
     labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")} #%>%
     #ggplot2::ggplot_build() %>% ggplot2::ggplot_gtable() %>%
     #gtable::gtable_filter(pattern = "panel-2-1$", invert = TRUE) %>%
