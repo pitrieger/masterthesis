@@ -260,7 +260,7 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
     sensspec_layer + 
   #  facet_grid(cols = vars(p)) + 
     scale_x_continuous(breaks = c(100, 200, 500, 1000)) +
-    labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method")
+    labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
   ggsavewrap("Specificity_lineplot_0bias.pdf", width = 8, height = 4)
   
 

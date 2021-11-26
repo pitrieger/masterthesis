@@ -93,15 +93,13 @@ detect_Janssens(varnames, D$sim_dat)
 
 
 n = 500
-p = 3
+p = 5
 g = 8
 h = 0.5
 k = 2
-D = sim_PMI(n = n, g = g, p = p, h = h, k = k, itembias = 0.25)
+D = sim_PMI(n = n, g = g, p = p, h = h, k = k, interceptbias = 0.25, loadingbias = 0)
 varnames = paste0("y", 1:p)
 D$p_affected
 
-detect_Rieger_v2(varnames, D$sim_dat)
-
 detect_CheungRensvold(varnames, D$sim_dat)
-detect_CheungRensvold2(varnames, D$sim_dat, group.constraints = c("loadings", "intercepts"))
+detect_CheungRensvold2(varnames, D$sim_dat, group.constraints = c("loadings"))

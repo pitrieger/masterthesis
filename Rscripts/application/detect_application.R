@@ -31,6 +31,7 @@ detect_Rieger(varnames, akker.data)
 detect_Rieger_step(varnames, akker.data)
 detect_ByrneVandeVijer(varnames, akker.data)
 detect_CheungRensvold(varnames, akker.data)
+detect_MInd(varnames, akker.data)
 
 # CSES
 varnames = c('akker6', 'cses1', 'cses2.r', 'cses3', 'cses4', 'cses5', 'akker2')
@@ -38,9 +39,10 @@ CSES.data = data[, varnames]
 CSES.data$grp = data$country
 CSES.data = na.omit(CSES.data)
 detect_Rieger(varnames, CSES.data)
-detect_Rieger(varnames, CSES.data)
+detect_Rieger_step(varnames, CSES.data)
 detect_ByrneVandeVijer(varnames, CSES.data)
 detect_CheungRensvold(varnames, CSES.data)
+detect_MInd(varnames, CSES.data)
 
 # Elchardus and Spruyt
 varnames  = c('es1', 'es2', 'es3', 'es4')
@@ -48,10 +50,9 @@ ES.data = data[, varnames]
 ES.data$grp = data$country
 ES.data = na.omit(ES.data)
 detect_Rieger(varnames, ES.data)
-detect_Rieger(varnames, ES.data)
+detect_Rieger_step(varnames, ES.data)
 detect_ByrneVandeVijer(varnames, ES.data)
 detect_CheungRensvold(varnames, ES.data)
-
-test
+detect_MInd(varnames, ES.data)
 
 
