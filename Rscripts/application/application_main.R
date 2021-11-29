@@ -2,6 +2,8 @@
 library(lavaan)
 library(here)
 library(tidyverse)
+library(stringr)
+
 # load detectors for single-factor models
 detectors = list.files(here("Rscripts/simulation")) 
 detectors = detectors[startsWith(detectors, "Detector")]
@@ -93,11 +95,13 @@ OR.varnames = c("ow_ae1", "ow_ae2", "ow_ae3", "ow_ae4", "ow_ae5..",
 OR.data = data[, OR.varnames]
 OR.data$grp = data$country
 OR.data = na.omit(OR.data)
+
 OR.model = '
 antiel =~ ow_ae1 + ow_ae2 + ow_ae3 + ow_ae4 + ow_ae5..
 mistexp =~ ow_me1 + ow_me2 + ow_me3 + ow_me4
 nataff =~ ow_na1 + ow_na2 + ow_na3
 '
+
 detectMulti_ByrneVandeVijer(OR.varnames, OR.model, OR.data)
 detectMulti_MInd(OR.varnames, OR.model, OR.data)
 #base_model = OR.model
@@ -109,10 +113,15 @@ Stan.varnames = c("stanley1", "stanley2", "stanley3", "stanley4", "stanley5", "s
 Stan.data = data[,Stan.varnames]
 Stan.data$grp = data$country
 Stan.data = na.omit(Stan.data)
-Stan.model<-'sta =~ stanley1 + stanley2 + stanley3 + stanley4 + stanley5 + stanley6 + stanley7 + stanley8
+
+Stan.model<-'
+sta =~ stanley1 + stanley2 + stanley3 + stanley4 + stanley5 + stanley6 + stanley7 + stanley8
 method =~ stanley3 + stanley8
-method ~~ 0*sta'
+method ~~ 0*sta
+'
+
 detectMulti_ByrneVandeVijer(Stan.varnames, Stan.model, Stan.data)
+detectMulti_MInd(Stan.varnames, Stan.model, Stan.data)
 
 # Schulz et al
 Schulz.varnames = c("nccr_ant1", "nccr_ant2", "nccr_ant3", 
@@ -126,8 +135,11 @@ Schulz.model<-'
 antiel =~ nccr_ant1 + nccr_ant2 + nccr_ant3
 sov =~ nccr_sov1 + nccr_sov2 + akker2
 hom =~ nccr_hom1 + nccr_hom2 + nccr_hom3
-pop =~ antiel + sov + hom'
+pop =~ antiel + sov + hom
+'
+
 detectMulti_ByrneVandeVijer(Schulz.varnames, Schulz.model, Schulz.data)
+detectMulti_MInd(Schulz.varnames, Schulz.model, Schulz.data)
 
 # Castanho et al
 Castanho.varnames = c("antiel23", "rwpop8.r", "antiel21",
@@ -145,6 +157,6 @@ method =~ 1*gewill3 + b1*antiel23 +  b1*antiel21 + b1*gewill17 + b1*manich15 + b
 method ~~ 0*antiel + 0*people + 0*manich
 '
 detectMulti_ByrneVandeVijer(Castanho.varnames, Castanho.model, Castanho.data)
-cat(models)
+detectMulti_MInd(Castanho.varnames, Castanho.model, Castanho.data)
 
 
