@@ -5,7 +5,7 @@ This is an attempt at writing a transparent master thesis. Find the proposal for
 I am currently working on an application of the methods. This serves as a proof of concept for more general CFA models (e.g. with multiple latent variables and )
 
 ## Open Questions
-[![][https://media.makeameme.org/created/when-everything-was-mnsrj2.jpg]][] :)
+![](https://media.makeameme.org/created/when-everything-was-mnsrj2.jpg) :)
 
 ## Log
 - 16/08/2021 - Finished initial proposal
