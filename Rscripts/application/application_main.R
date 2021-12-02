@@ -3,6 +3,7 @@ library(lavaan)
 library(here)
 library(tidyverse)
 library(stringr)
+library(e1071)
 
 # load detectors for single-factor models
 detectors = list.files(here("Rscripts/simulation")) 
@@ -46,7 +47,9 @@ Akker.model = '
 akk =~ akker1 + akker2 + akker3 + akker4 + akker5 + akker6
 '
 detect_Rieger(Akker.varnames, Akker.data)
+detectMulti_Rieger(Akker.varnames, Akker.model, Akker.data)
 detect_Rieger_step(Akker.varnames, Akker.data)
+detectMulti_Rieger_step(Akker.varnames, Akker.model, Akker.data)
 detect_ByrneVandeVijer(Akker.varnames, Akker.data)
 detectMulti_ByrneVandeVijer(Akker.varnames, Akker.model, Akker.data) # should be same as single factor BV function
 detect_CheungRensvold(Akker.varnames, Akker.data)
@@ -62,7 +65,9 @@ CSES.model = '
 cses =~ akker6 + cses1 + cses2.r + cses3 + cses4 + cses5 + akker2
 '
 detect_Rieger(CSES.varnames, CSES.data)
+detectMulti_Rieger(CSES.varnames, CSES.model, CSES.data)
 detect_Rieger_step(CSES.varnames, CSES.data)
+detectMulti_Rieger_step(CSES.varnames, CSES.model, CSES.data)
 detect_ByrneVandeVijer(CSES.varnames, CSES.data)
 detectMulti_ByrneVandeVijer(CSES.varnames, CSES.model, CSES.data) # should be same as single factor BV function
 detect_CheungRensvold(CSES.varnames, CSES.data)
@@ -78,7 +83,9 @@ ES.model = '
 es =~ es1 + es2 + es3 + es4
 '
 detect_Rieger(ES.varnames, ES.data)
+detectMulti_Rieger(ES.varnames, ES.model, ES.data)
 detect_Rieger_step(ES.varnames, ES.data)
+detectMulti_Rieger_step(ES.varnames, ES.model, ES.data)
 detect_ByrneVandeVijer(ES.varnames, ES.data)
 detectMulti_ByrneVandeVijer(ES.varnames, ES.model, ES.data) # should be same as single factor BV function
 detect_CheungRensvold(ES.varnames, ES.data)
@@ -102,8 +109,11 @@ mistexp =~ ow_me1 + ow_me2 + ow_me3 + ow_me4
 nataff =~ ow_na1 + ow_na2 + ow_na3
 '
 
+detectMulti_Rieger(OR.varnames, OR.model, OR.data)
+detectMulti_Rieger_step(OR.varnames, OR.model, OR.data)
 detectMulti_ByrneVandeVijer(OR.varnames, OR.model, OR.data)
 detectMulti_MInd(OR.varnames, OR.model, OR.data)
+
 #base_model = OR.model
 #data = OR.data
 #varnames = OR.varnames
@@ -120,6 +130,8 @@ method =~ stanley3 + stanley8
 method ~~ 0*sta
 '
 
+detectMulti_Rieger(Stan.varnames, Stan.model, Stan.data)
+detectMulti_Rieger_step(Stan.varnames, Stan.model, Stan.data)
 detectMulti_ByrneVandeVijer(Stan.varnames, Stan.model, Stan.data)
 detectMulti_MInd(Stan.varnames, Stan.model, Stan.data)
 
@@ -138,6 +150,8 @@ hom =~ nccr_hom1 + nccr_hom2 + nccr_hom3
 pop =~ antiel + sov + hom
 '
 
+detectMulti_Rieger(Schulz.varnames, Schulz.model, Schulz.data)
+detectMulti_Rieger_step(Schulz.varnames, Schulz.model, Schulz.data)
 detectMulti_ByrneVandeVijer(Schulz.varnames, Schulz.model, Schulz.data)
 detectMulti_MInd(Schulz.varnames, Schulz.model, Schulz.data)
 
@@ -156,7 +170,9 @@ manich =~ manich15 + manich13.r + manich14
 method =~ 1*gewill3 + b1*antiel23 +  b1*antiel21 + b1*gewill17 + b1*manich15 + b1*manich14
 method ~~ 0*antiel + 0*people + 0*manich
 '
+
+detectMulti_Rieger(Castanho.varnames, Castanho.model, Castanho.data)
+detectMulti_Rieger_step(Castanho.varnames, Castanho.model, Castanho.data)
 detectMulti_ByrneVandeVijer(Castanho.varnames, Castanho.model, Castanho.data)
 detectMulti_MInd(Castanho.varnames, Castanho.model, Castanho.data)
-
 

@@ -65,21 +65,17 @@ detect_CheungRensvold = function(varnames, data, alpha = 0.05, group.constraints
   for(i in 2:p){ # rows = argument with equality constraint across groups
     for(j in 1:p){ # cols = reference item with loading = 1
       if(j<i){
-        model = paste("eta =~", paste(c(varnames[j], varnames[-j]), collapse = " + "))
-        
-        # NOTE: lavaan doesn't implement selecting individual parameters for constraints, 
-        #       only entire families. Thus, group.equal constrains all loadings and group.partial
-        #       then lifts the constrains for all but the argument variable, as defined by decons
-        decons = c()
+        # base_model in case no constraints
+        model = base_model
         if("loadings" %in% group.constraints){
-          decons = c(decons, sapply(varnames[-c(i,j)], function(x) paste("eta =~", x)))
+          # if loading, constrain for variable in rows (implicitly by setting a coefficient)
+          model = paste("eta =~", paste(c(varnames[j], paste0("COEF_0*", varnames[i]),varnames[-c(i,j)]), collapse = " + "))
         } 
         if("intercepts" %in% group.constraints){
-          decons = c(decons, sapply(varnames[-c(i, j)], function(x) paste(x, "~ 1")))
+          # if intercept, constrain for reference and argument indicator (implicitly by setting loading)
+          model = paste0(c(model, paste0(varnames[c(i, j)], "~ ", LETTERS[1:2], "*1", collapse = "\n")), collapse = "\n")
         }
-        fit = cfa(model, data = data, group = "grp", 
-                  group.equal = group.constraints, # constrain all selected families of parameters across grps
-                  group.partial = decons)# deconstrain all loadings except for argument & reference
+        fit = cfa(model, data = data, group = "grp")
         cons.test = lavTestLRT(base_fit, fit)
         pairs[i,j] = cons.test$`Chisq diff`[2]
       }

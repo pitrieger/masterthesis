@@ -2,6 +2,7 @@ library(tidyverse)
 library(parallel)
 library(lavaan)
 library(here)
+library(e1071)
 library(RColorBrewer)
 
 # Load simulator & detectors

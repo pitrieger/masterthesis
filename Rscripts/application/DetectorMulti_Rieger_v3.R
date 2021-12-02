@@ -34,7 +34,7 @@ get_pvalMulti = function(data, hat.eta, grp, models, varnames){
       }
     }
   }
-  pmin(1, p.vals*str_count(paste0(models[c(1, 1, 2, 3)], collapse = ""), varnames)) # note additional bonferroni correction for indicators in multiple
+  pmin(1, p.vals*str_count(paste0(models, collapse = ""), varnames)) # note additional bonferroni correction for indicators in multiple
 }
 
 detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05){
@@ -83,9 +83,11 @@ detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05){
     detected
     # update model & model_split & keep & varnames
     model_it = gsub(varname_remove, "", model_it) %>%
+      gsub("\\S*\\*", "", .) %>% # remove coefficient constraints such as lv1 =~ x1 + b1*x2 + b1*x3
       gsub("\\~[[:blank:]]*\\+", "~", .) %>% # removed var at beginning
       gsub("\\+[[:blank:]]*\\+", "+", .) %>% # removed var in middle
       gsub("\\+[[:blank:]]*\n|\\+[[:blank:]]*$", "\n", .) # removed var at end of line or very end
+    
     cat(model_it)
     model_split = unlist(strsplit(model_it, "\n"))
     model_split = model_split[grepl(paste0(varnames, collapse = "|"), model_split) & 
@@ -96,7 +98,6 @@ detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05){
     if(any(model_split_nvar <= 1)){
       keep = unlist(model_split_vars[which(model_split_nvar <= 1)])
     }
-    keep
     varnames_it = detected$varnames[-which(detected$p.vals == p.val.min)]
   
     if(all(varnames_it %in% keep)){

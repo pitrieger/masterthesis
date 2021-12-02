@@ -18,6 +18,11 @@ x9 ~ 1
 fit <- cfa(HS.model, data = HolzingerSwineford1939)
 # display summary output
 summary(fit, fit.measures = TRUE)
+fitmeasures(fit, "cfi")
+1 - (fitmeasures(fit, "chisq")- 24)/(fitmeasures(fit, "baseline.chisq") - 36)
+
+fitbase = cfa(mod_baseline, data = HolzingerSwineford1939, meanstructure = T)
+summary(fitbase)
 
 apply(HolzingerSwineford1939[, paste0("x", 1:9)], 2, mean)
 fit@ParTable$est[10:19]
@@ -28,6 +33,18 @@ fit@ParTable$est[10:19]
 9) # unique variances
 (dfs = ui - pars)
   
+sigma.M = fit@implied$cov[[1]]
+sigma.Mbase = fitbase@implied$cov[[1]]
+S = fit@SampleStats@cov[[1]]
+n = nrow(HolzingerSwineford1939)
+tr = function(x) sum(diag(x))
+F.M = log(det(sigma.M)) - log(det(S)) + tr(S%*%solve(sigma.M)) - 9
+n*F.M
+F.Mbase = log(det(sigma.Mbase)) - log(det(S)) + tr(S%*%solve(sigma.Mbase)) - 9
+n*F.Mbase
+
+
+summary(fit)
 
 diag(9)
 sum(1:9)
