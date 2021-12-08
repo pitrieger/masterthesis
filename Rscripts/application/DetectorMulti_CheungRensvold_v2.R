@@ -68,7 +68,8 @@ detectMulti_CheungRensvold = function(varnames, base_model, data, alpha = 0.05, 
   #model_split_nvar = sapply(model_split_vars, length)
   
   out = list(varnames = varnames, 
-             noninvariant = NULL, 
+             noninvariant = NULL,
+             convergenceissue = NULL,
              alpha = alpha)
   for(k in 1:length(model_split_pos)){
     line = model_split_pos[k]

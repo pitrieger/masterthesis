@@ -111,5 +111,3 @@ detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05){
   list(varnames = varnames,
        noninvariant = varnames[!varnames %in% varnames_it])
 }
-
-detectMulti_Rieger_step(OR.varnames, OR.model, OR.data)
