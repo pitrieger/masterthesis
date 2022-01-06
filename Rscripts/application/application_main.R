@@ -87,12 +87,30 @@ cses =~ akker6 + cses1 + cses2.r + cses3 + cses4 + cses5 + akker2
 (CSES.MInd = detect_MInd(CSES.varnames, CSES.data))
 #detectMulti_MInd(CSES.varnames, CSES.model, CSES.data) # should be same as single factor MInd function
 
-CSES.out = matrix("", ncol = 5, nrow = length(CSES.varnames), dimnames = list(CSES.varnames, c("MInd", "CR", "BV", "R1", "R2")))
+CSES.BV
+(CSES.BV.inter = detect_ByrneVandeVijer(CSES.varnames, CSES.data, group.constraints = "intercepts"))
+(CSES.BV.load =  detect_ByrneVandeVijer(CSES.varnames, CSES.data, group.constraints = "loadings"))
+
+CSES.CR
+(CSES.CR.inter = detect_CheungRensvold(CSES.varnames, CSES.data, group.constraints = "intercepts"))
+(CSES.CR.load = detect_CheungRensvold(CSES.varnames, CSES.data, group.constraints = "loadings"))
+
+CSES.MInd
+(CSES.MInd.inter = detect_MInd(CSES.varnames, CSES.data, group.constraints = "intercepts"))
+(CSES.MInd.load = detect_MInd(CSES.varnames, CSES.data, group.constraints = "loadings"))
+
+
+
+
+CSES.out = matrix("", ncol = 8, nrow = length(CSES.varnames), dimnames = list(CSES.varnames, c("MInd", "CR", "BV", "R1", "R2", "MInd", "CR", "BV")))
 CSES.out[rownames(CSES.out) %in% CSES.MInd$noninvariant,1] = "X"
 CSES.out[rownames(CSES.out) %in% CSES.CR$noninvariant,  2] = "X"
 CSES.out[rownames(CSES.out) %in% CSES.BV$noninvariant,  3] = "X"
 CSES.out[rownames(CSES.out) %in% CSES.R1$noninvariant,  4] = "X"
 CSES.out[rownames(CSES.out) %in% CSES.R2$noninvariant,  5] = "X"
+CSES.out[rownames(CSES.out) %in% CSES.MInd.load$noninvariant,  6] = "X"
+CSES.out[rownames(CSES.out) %in% CSES.CR.load$noninvariant,  7] = "X"
+CSES.out[rownames(CSES.out) %in% CSES.BV.load$noninvariant,  8] = "X"
 CSES.out
 stargazer(CSES.out, summary = F)
 
@@ -244,11 +262,18 @@ method ~~ 0*antiel + 0*people + 0*manich
 (Castanho.CR = detectMulti_CheungRensvold(Castanho.varnames, Castanho.model, Castanho.data))
 (Castanho.MInd = detectMulti_MInd(Castanho.varnames, Castanho.model, Castanho.data))
 
-Castanho.out = matrix("", ncol = 5, nrow = length(Castanho.varnames), dimnames = list(Castanho.varnames, c("MInd", "CR", "BV", "R1", "R2")))
+(Castanho.BV.load = detectMulti_ByrneVandeVijer(Castanho.varnames, Castanho.model, Castanho.data, group.constraints = "loadings"))
+(Castanho.CR.load = detectMulti_CheungRensvold(Castanho.varnames, Castanho.model, Castanho.data, group.constraints = "loadings"))
+(Castanho.MInd.load = detectMulti_MInd(Castanho.varnames, Castanho.model, Castanho.data, group.constraints = "loadings"))
+
+Castanho.out = matrix("", ncol = 8, nrow = length(Castanho.varnames), dimnames = list(Castanho.varnames, c("MInd", "CR", "BV", "R1", "R2", "MInd", "CR", "BV")))
 Castanho.out[rownames(Castanho.out) %in% Castanho.MInd$noninvariant,1] = "X"
 Castanho.out[rownames(Castanho.out) %in% Castanho.CR$noninvariant,  2] = "X"
 Castanho.out[rownames(Castanho.out) %in% Castanho.BV$noninvariant,  3] = "X"
 Castanho.out[rownames(Castanho.out) %in% Castanho.R1$noninvariant,  4] = "X"
 Castanho.out[rownames(Castanho.out) %in% Castanho.R2$noninvariant,  5] = "X"
+Castanho.out[rownames(Castanho.out) %in% Castanho.MInd.load$noninvariant,6] = "X"
+Castanho.out[rownames(Castanho.out) %in% Castanho.CR.load$noninvariant,  7] = "X"
+Castanho.out[rownames(Castanho.out) %in% Castanho.BV.load$noninvariant,  8] = "X"
 Castanho.out
 stargazer(Castanho.out, summary = F)

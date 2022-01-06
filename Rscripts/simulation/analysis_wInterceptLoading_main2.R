@@ -1,4 +1,3 @@
-# Preliminatory analysis
 library(tidyverse)
 library(here)
 library(stargazer)
@@ -20,7 +19,7 @@ get_sensspec = function(x, alpha = 0.05, type = "sensitivity"){
   # proportion
   est = r/n
   # Clopper-Pearson CIs
-  # get F-values, but use 0 or 1 if est is 0 or 1 
+  # get F-values, but use 0 or 1 if est is 0 or 1 to fix NaNs
   lowerF = qf(1-alpha/2, 2*(n-r+1), 2*r)
   lowerF = ifelse(is.nan(lowerF), round(est), lowerF)
   upperF = qf(1-alpha/2, 2*(r+1), 2*(n-r))
@@ -52,6 +51,13 @@ out_df = do.call("rbind", out_df) %>%
 out_df$method = rep(rownames(out$`1`), length(out))
 out_df$id = rep(1:length(out), each = nrow(out$`1`))
 out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
+
+# check number where trycatch was actually used
+out_df %>% 
+  mutate(numba = TP + FP + TN + FN,
+         diff = numba - p*nsim) %>% 
+  group_by(method) %>% 
+  summarize(t = min(diff)) # 0
 
 #####################
 #### SENSITIVITY ####
@@ -134,7 +140,7 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
            function(x) identical(x, out_df_sum_both$method))
     #bind
     out_df_sum_all = data.frame(method = out_df_sum_both$method,
-                                n = out_df_sum_both$n,
+#                                n = out_df_sum_both$n,
                                 Sens_both = out_df_sum_both$sensitivity,
                                 Spec_both = out_df_sum_both$specificity,
                                 Sens_intercept = out_df_sum_intercept$sensitivity,
@@ -144,6 +150,8 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
                                 Spec_0 = out_df_sum0$specificity)
     stargazer(out_df_sum_all, summary = F)
 
+    min(c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n))
+    
   #########################
   ## Function of n, p, k ##
   #########################
@@ -193,7 +201,7 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
     sensspec_layer + 
     scale_x_continuous(breaks = 2^(1:4)) +
     labs(y = "Sensitivity", x = "g", color = "Method", shape = "Method")
-  ggsavewrap("Sensitivity_linegrid_gh.pdf", width = 8, height = 5)
+  ggsavewrap("Sensitivity_linegrid_gh.pdf", width = 8, height = 2)
   
 #####################
 #### SPECIFICITY ####
@@ -232,7 +240,41 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
     sensspec_layer + 
     scale_x_continuous(breaks = 2^(1:4)) +
     labs(y = "Specificity", x = "g", color = "Method", shape = "Method")
-  ggsavewrap("Specificity_linegrid_gh.pdf", width = 8, height = 5)
+  ggsavewrap("Specificity_linegrid_gh.pdf", width = 8, height = 2)
+  
+#####################################
+## Effect of magnitude of bias     ##
+#####################################
+  out_df_bias = out_df %>% # filter(interceptbias > 0 & loadingbias > 0) %>%
+    group_by(method, interceptbias, loadingbias) %>%
+    summarize(TP = sum(TP, na.rm = T),
+              TN = sum(TN, na.rm = T),
+              FP = sum(FP, na.rm = T),
+              FN = sum(FN, na.rm = T))
+  
+  out_df_bias_sensspec = rbind(cbind(out_df_bias, get_sensspec(out_df_bias)[,2:4], perform = "Sensitivity"),
+                           cbind(out_df_bias, get_sensspec(out_df_bias, type = "specificity")[,2:4], perform = "Specificity"))
+  
+  out_df_bias_sensspec$method = factor(out_df_bias_sensspec$method, 
+                                       levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
+                                       labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+  
+  ggplot(out_df_bias_sensspec, aes(y = est, ymin = lowerCI, ymax = upperCI,
+                              x = method, color = perform)) + 
+    geom_pointrange(alpha = 0.7) +
+    facet_grid(rows = vars(interceptbias), cols = vars(loadingbias),
+               labeller = function(x) label_both(x, sep = " = ")) +
+    labs(y = "Sensitivity / Specificity") +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.2)) +
+    scale_color_manual(values = c("black", "orangered")) +
+    theme_bw() +
+    theme(strip.background = element_rect(color = "black", fill = "white"),
+          axis.title.x = element_blank(),
+          legend.title = element_blank())
+    
+ggsavewrap("SensSpec_dotplot_biasmagnitude.pdf", width = 8, height = 5)
+  
+  
   
 #######################
 #### Zero itembias ####
@@ -261,6 +303,6 @@ out_df = left_join(out_df, sim_param_df %>% mutate(id = 1:nrow(sim_param_df)))
   #  facet_grid(cols = vars(p)) + 
     scale_x_continuous(breaks = c(100, 200, 500, 1000)) +
     labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
-  ggsavewrap("Specificity_lineplot_0bias.pdf", width = 8, height = 4)
+  ggsavewrap("Specificity_lineplot_0bias.pdf", width = 8, height = 3)
   
 

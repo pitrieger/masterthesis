@@ -13,7 +13,7 @@ sapply(detectors, function(i) source(here("Rscripts/simulation", i)))
 
 # Parallelization setup
 RNGkind("L'Ecuyer-CMRG") # multi-core compatible RNG
-options(mc.cores = max(detectCores() - 1, 2))
+options(mc.cores = detectCores())
 set.seed(9)
 
 # Simulation parameters
@@ -22,11 +22,11 @@ sim_param_df = expand.grid(nsim = 100,
                         p = c(3, 4, 5, 6),
                         g = c(2, 4, 8, 16),
                         h = c(0.25, 0.5),
-                        k = c(1, 2), 
+                        k = c(1, 2, 3), 
                         #itembias = c(0, 0.2))
-                        interceptbias = c(0, 0.2),
-                        loadingbias = c(0, 0.2))
-sim_param_df = sim_param_df[2*sim_param_df$k<sim_param_df$p & 
+                        interceptbias = c(0, 0.2, 0.4),
+                        loadingbias = c(0, 0.2, 0.4))
+sim_param_df = sim_param_df[2*sim_param_df$k<=sim_param_df$p & 
                             (sim_param_df$h * sim_param_df$g) %% 1 == 0,]
 
 sim_param = split(sim_param_df, 1:nrow(sim_param_df))
@@ -129,5 +129,6 @@ run_sim = function(x) {
 }
 
 # replicate within parallel
-system.time(out <- mclapply(sim_out, function(x) replicate(x$sim_param$nsim, run_sim(x))))
+out.time = system.time(out <- mclapply(sim_out, function(x) replicate(x$sim_param$nsim, run_sim(x))))
+out.sysinfo = Sys.info()
 save.image(here(paste0("data/Prelim_Sim_", format(Sys.time(), "%Y-%m-%d_%H%M"), ".RData")))

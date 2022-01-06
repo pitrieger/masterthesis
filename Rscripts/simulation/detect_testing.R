@@ -23,6 +23,16 @@ k = 1
 D = sim_PMI(n = n, g = g, p = p, h = h, k = k)
 varnames = paste0("y", 1:p)
 D$p_affected
+
+
+fit = cfa("eta =~ y1 + y2 + y3", D$sim_dat)
+
+summary(fit)
+fit = cfa("eta =~ y1 + y2 + y3", D$sim_dat, group = "grp")
+summary(fit)
+fit = cfa("eta =~ y1 + y2 + y3", D$sim_dat, group = "grp", group.equal = "residuals")
+summary(fit)
+
 detect_CheungRensvold(varnames, D$sim_dat)
 
 detect_ByrneVandeVijer(varnames = paste0("y", 1:p),

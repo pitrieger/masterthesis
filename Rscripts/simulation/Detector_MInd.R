@@ -12,10 +12,10 @@ detect_MInd = function(varnames, data, alpha = 0.05, group.constraints = c("inte
   for(j in 1:length(varnames)){
     # select params for which constraints will be lifted
     lift.constraints = NULL
-    if("intercepts" %in% group.constraints){
+    if("loadings" %in% group.constraints){
       lift.constraints = paste("eta =~", varnames[j])
     } 
-    if("loadings" %in% group.constraints){
+    if("intercepts" %in% group.constraints){
       lift.constraints = c(lift.constraints, 
                            paste(varnames[j], "~1"))
     }  
