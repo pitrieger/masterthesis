@@ -1,0 +1,11 @@
+name: miapp
+title:
+username:
+account: prieger
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5429003
+bundleId: 5461110
+url: https://prieger.shinyapps.io/miapp/
+when: 1642001744.34354
+lastSyncTime: 1642001744.34355
