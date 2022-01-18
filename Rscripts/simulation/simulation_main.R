@@ -24,10 +24,11 @@ sim_param_df = expand.grid(nsim = 100,
                         h = c(0.25, 0.5),
                         k = c(1, 2, 3), 
                         #itembias = c(0, 0.2))
-                        interceptbias = c(0, 0.2, 0.4),
-                        loadingbias = c(0, 0.2, 0.4))
+                        interceptbias = c(0, 0.2),
+                        loadingbias = c(0, 0.2))
 sim_param_df = sim_param_df[2*sim_param_df$k<=sim_param_df$p & 
                             (sim_param_df$h * sim_param_df$g) %% 1 == 0,]
+sim_param_df
 
 sim_param = split(sim_param_df, 1:nrow(sim_param_df))
 sim_out = lapply(sim_param, function(x) set_names(list(x), "sim_param"))
@@ -91,18 +92,41 @@ run_sim = function(x) {
     silent = T)
     
     # MInd
+    det_M = tryCatch({
+      detect_MInd(varnames, D$sim_dat)
+    }, error = function(cond){return(NULL)},
+    silent = T)
+    
     ni_M = tryCatch({
-      get_confusion(detect_MInd(varnames, D$sim_dat)$noninvariant, 
-                   noninvariant_true, varnames)
+      get_confusion(det_M$noninvariant, 
+                    noninvariant_true, varnames)
     }, error = function(cond){return(rep(NA, 4))},
     silent = T)
     
+    ni_M_bonf = tryCatch({
+      get_confusion(det_M$noninvariant_bonferroni, 
+                    noninvariant_true, varnames)
+    }, error = function(cond){return(rep(NA, 4))},
+    silent = T)
+    
+    
     # Cheung & Rensvold (1999):
+    det_C = tryCatch({
+      detect_CheungRensvold(varnames, D$sim_dat)
+    }, error = function(cond){return(NULL)},
+    silent = T)
+    
     ni_C = tryCatch({
-      get_confusion(detect_CheungRensvold(varnames, D$sim_dat)$noninvariant, 
-                   noninvariant_true, varnames)    
-      }, error = function(cond){return(rep(NA, 4))},
-      silent = T)
+      get_confusion(det_C$noninvariant, 
+                    noninvariant_true, varnames)
+    }, error = function(cond){return(rep(NA, 4))},
+    silent = T)
+    
+    ni_C_bonf = tryCatch({
+      get_confusion(det_C$noninvariant_bonferroni, 
+                    noninvariant_true, varnames)
+    }, error = function(cond){return(rep(NA, 4))},
+    silent = T)
     
     # Byrne & van de Vijer (2010):
     ni_B = tryCatch({
@@ -125,7 +149,7 @@ run_sim = function(x) {
     }, error = function(cond){return(rep(NA, 4))},
     silent = T)
 
-    rbind(ni_J, ni_M, ni_C, ni_B, ni_R1, ni_R2)
+    rbind(ni_J, ni_M, ni_M_bonf, ni_C, ni_C_bonf, ni_B, ni_R1, ni_R2)
 }
 
 # replicate within parallel

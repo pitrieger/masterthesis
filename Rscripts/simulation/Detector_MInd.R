@@ -38,5 +38,6 @@ detect_MInd = function(varnames, data, alpha = 0.05, group.constraints = c("inte
 
   list(varnames = varnames,
        noninvariant = varnames[which(rej < alpha)], # interpretation: lifting constraint improves goodness-of-fit
+       noninvariant_bonferroni = varnames[which(rej < alpha/length(varnames))],
        alpha = alpha)
 }

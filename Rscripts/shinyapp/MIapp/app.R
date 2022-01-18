@@ -2,6 +2,7 @@ library(shiny)
 library(tidyverse)
 library(lavaan)
 library(shinycssloaders)
+library(semPlot)
 library(here)
 source(here("Simulator_PokropekEtAl.R"))
 source(here("Detector_ByrneVandeVijer.R"))
@@ -16,7 +17,7 @@ ui <- fluidPage(
   # App title ----
   titlePanel("Performance of Detection Methods for Non-invariant Items in CFA."),
   strong("Pit Rieger - Jan 2022"),
-  p("This simple shinyapp is an interactive version of the simulation study in my master thesis. It allows the user to specify several
+  p("This simple Shiny app is an interactive version of the simulation study in my master thesis. It allows the user to specify several
   parameters for generating data from a single-factor CFA model with item-level violations of measurement invariance. Through replications, the app provides
     estimates for the sensitivity and specificity of four different detection methods. Further details can be found on the", 
     a("GitHub Repo", href = "https://github.com/pitrieger/masterthesis"), 
@@ -31,16 +32,16 @@ ui <- fluidPage(
     sidebarPanel(
       sliderInput(inputId = "n",
                   label = "Number of observations per group",
-                  min = 50,
-                  max = 500,
-                  step = 10,
-                  value = 250),
+                  min = 100,
+                  max = 1000,
+                  step = 50,
+                  value = 500),
       sliderInput(inputId = "g",
                   label = "Number of groups",
                   min = 2,
                   max = 48,
                   step = 2,
-                  value = 2),
+                  value = 4),
       sliderInput(inputId = "p",
                   label = "Number of items",
                   min = 3,
@@ -56,13 +57,13 @@ ui <- fluidPage(
                   min = 0,
                   max = 2,
                   step = 0.05,
-                  value = 0.2),
+                  value = 0.4),
       sliderInput(inputId = "interceptbias",
                   label = "Bias on intercepts",
                   min = 0,
                   max = 2,
                   step = 0.05,
-                  value = 0.2),
+                  value = 0.4),
       sliderInput(inputId = "nsim",
                   label = "Number of simulations (may take substantial amount of time for large values!)",
                   min = 3,
@@ -73,7 +74,10 @@ ui <- fluidPage(
     
     # Main panel for displaying outputs ----
     mainPanel(
-      
+      strong("Model Graph"),
+      withSpinner(
+        plotOutput(outputId = "graph")
+      ),
       strong("Dot Plot"),
       withSpinner(
         plotOutput(outputId = "dotPlot")
@@ -87,6 +91,18 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+  # Model graph
+  semplot = eventReactive(input$p, {
+    varnames = paste0("y", 1:input$p)
+    mod = paste0("eta =~ ", paste(varnames, collapse = " + "), "\n y1 ~1")
+    mod
+  })
+  
+  output$graph <- renderPlot({
+    semPaths(semPlotModel_lavaanModel(semplot()), mar = c(10, 5, 10, 5))
+  })
+  
+  # Simulation
   pars = reactiveValues(n = NULL,
                         g = NULL,
                         p = NULL, 

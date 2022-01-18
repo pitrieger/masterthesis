@@ -5,7 +5,7 @@ account: prieger
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5429003
-bundleId: 5461110
+bundleId: 5464381
 url: https://prieger.shinyapps.io/miapp/
-when: 1642001744.34354
-lastSyncTime: 1642001744.34355
+when: 1642078433.39242
+lastSyncTime: 1642078433.39244

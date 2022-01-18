@@ -84,5 +84,6 @@ detect_CheungRensvold = function(varnames, data, alpha = 0.05, group.constraints
   
   list(varnames = varnames,
        noninvariant = permuted_noninvariant(pairs, df = cons.test$`Df diff`[2], alpha = alpha),
+       noninvariant_bonferroni = permuted_noninvariant(pairs, df = cons.test$`Df diff`[2], alpha = alpha/p),
        alpha = alpha)
 }
