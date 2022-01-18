@@ -2,6 +2,7 @@
 /private
 /literature
 /data
+.DS_Store
 
 
 # R gitignore template
