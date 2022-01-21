@@ -17,11 +17,19 @@ for(j in 1:length(MMGFA_files)){
 # Simulate data
 n = 800
 p = 3
-g = 2
+g = 4
 h = 0.5
 k = 1
-D = sim_PMI(n = n, g = g, p = p, h = h, k = k)
+D = sim_PMI(n = n, g = g, p = p, h = h, k = k, interceptbias = 0.5, loadingbias = 0)
 varnames = paste0("y", 1:p)
+
+detect_Rieger(varnames, D$sim_dat)
+detect_Rieger(varnames, D$sim_dat, detection.type = "metric")
+detect_Rieger_step(varnames, D$sim_dat)
+detect_Rieger_step(varnames, D$sim_dat, detection.type = "metric")
+
+data = D$sim_dat
+
 D$p_affected
 
 
