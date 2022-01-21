@@ -37,7 +37,37 @@ get_pvalMulti = function(data, hat.eta, grp, models, varnames){
   pmin(1, p.vals*str_count(paste0(models, collapse = ""), varnames)) # note additional bonferroni correction for indicators in multiple
 }
 
-detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05){
+get_pvalMulti_metric = function(data, hat.eta, grp, models, varnames){
+  k = length(models) # number of latent variables
+  g = length(unique(grp))
+  
+  p.vals = rep(1,length(varnames))
+  for(i in 1:k){# for each latent variable
+    line_split = unlist(strsplit(models[i], "\\=\\~")) # split into latent variable and indicators
+    
+    #get latent variable i 
+    line_latvar = line_split[1] %>% gsub("[[:blank:]]*", "", .)
+    line_hat.eta = hat.eta[,line_latvar]
+    
+    # get relevant indicators
+    line_vars = unlist(strsplit(line_split[2], "\\+")) %>% gsub("[[:blank:]]*", "", .)
+    
+    for(j in 1:length(varnames)){
+      if(varnames[j] %in% line_vars){
+        # get residuals
+        R = resid(lm(data[,varnames[j]] ~ line_hat.eta))
+        fit = lm(R ~ line_hat.eta*as.factor(grp))
+        cor.p = anova(fit)["line_hat.eta:as.factor(grp)", "Pr(>F)"]
+        
+        # save pval if lower than from any other item-latent variable relationship
+        p.vals[j] = min(p.vals[j], g*cor.p)
+      }
+    }
+  }
+  pmin(1, p.vals*str_count(paste0(models, collapse = ""), varnames)) # note additional bonferroni correction for indicators in multiple
+}
+
+detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05, detection.type = "both"){
   #model = paste("eta =~", paste(varnames, collapse = " + "))
   fit = cfa(base_model, data = data)
   
@@ -50,7 +80,11 @@ detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05){
   hat.eta = predict(fit, newdata = data)
   
   # get p - values
-  p.vals = get_pvalMulti(data = data, hat.eta = hat.eta, grp = data$grp, models = base_model_split, varnames = varnames)
+  if(detection.type = "both"){
+    p.vals = get_pvalMulti(data = data, hat.eta = hat.eta, grp = data$grp, models = base_model_split, varnames = varnames)
+  } else if(detection.type = "metric"){
+    p.vals = get_pvalMulti_metric(data = data, hat.eta = hat.eta, grp = data$grp, models = base_model_split, varnames = varnames)
+  }
   
   list(varnames = varnames,
        noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(p.vals) + 1))], # Bonferroni-holm

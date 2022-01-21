@@ -31,10 +31,11 @@ get_pval_metric = function(X, hat.eta, grp){
     R = resid(lm(X[,j] ~ hat.eta))
     # equal correlations => nonsignificant interaction of eta & grp
     fit = lm(R ~ hat.eta*as.factor(grp))
-    cor.p = summary(fit)$coefficients[grepl("hat\\.eta\\:", names(coef(fit))),4] # p-vals of rows containing interaction
-
-    # aggregate p.vals
-    p.vals[j] = (g)*min(cor.p)
+      # old version with min(cor.p) for each interaction term
+      #cor.p = summary(fit)$coefficients[grepl("hat\\.eta\\:", names(coef(fit))),4] # p-vals of rows containing interaction
+    cor.p = anova(fit)["hat.eta:as.factor(grp)", "Pr(>F)"]
+    # Bonferroni correction
+    p.vals[j] = g*cor.p
   }
   p.vals
 }
