@@ -80,9 +80,9 @@ detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05, detectio
   hat.eta = predict(fit, newdata = data)
   
   # get p - values
-  if(detection.type = "both"){
+  if(detection.type == "both"){
     p.vals = get_pvalMulti(data = data, hat.eta = hat.eta, grp = data$grp, models = base_model_split, varnames = varnames)
-  } else if(detection.type = "metric"){
+  } else if(detection.type == "metric"){
     p.vals = get_pvalMulti_metric(data = data, hat.eta = hat.eta, grp = data$grp, models = base_model_split, varnames = varnames)
   }
   
@@ -91,7 +91,7 @@ detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05, detectio
        p.vals = p.vals)
 }
 
-detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05){
+detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05, detection.type = "both"){
   model_it = base_model
   detected = detectMulti_Rieger(varnames, base_model, data, alpha)
   
@@ -137,7 +137,7 @@ detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05){
     if(all(varnames_it %in% keep)){
       break
     }
-    detected = detectMulti_Rieger(varnames_it, model_it, data, alpha)
+    detected = detectMulti_Rieger(varnames_it, model_it, data, alpha, detection.type)
     
     # min p.val among variables not in keep
     p.val.min = min(detected$p.vals[!(detected$varnames %in% keep)]) # Bonferroni-Holm

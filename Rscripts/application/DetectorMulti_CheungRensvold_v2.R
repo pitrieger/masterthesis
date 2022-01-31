@@ -69,6 +69,7 @@ detectMulti_CheungRensvold = function(varnames, base_model, data, alpha = 0.05, 
   
   out = list(varnames = varnames, 
              noninvariant = NULL,
+             noninvariant_bonferroni = NULL,
              convergenceissue = NULL,
              alpha = alpha)
   for(k in 1:length(model_split_pos)){
@@ -108,6 +109,8 @@ detectMulti_CheungRensvold = function(varnames, base_model, data, alpha = 0.05, 
   }
   out$noninvariant = unique(c(out$noninvariant, 
                               permuted_noninvariant(pairs, df = cons.test$`Df diff`[2], alpha = alpha)))
+  out$noninvariant_bonferroni = unique(c(out$noninvariant_bonferroni,
+                                         permuted_noninvariant(pairs, df = cons.test$`Df diff`[2], alpha = alpha/length(varnames))))
   }
   out
 }

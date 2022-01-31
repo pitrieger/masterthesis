@@ -229,5 +229,140 @@ lambda_k
 
 
 
+# 8 cases
+library(tidyverse)
+par = expand.grid(tau_eq = c(T,F),
+                  lam_eq = c(T,F),
+                  eta_eq = c(T,F))
+g = 2
+n = 200
+plots = list()
+for(j in 1:nrow(par)){
+  if(par$eta_eq[j]){
+    mu_k = c(0, 0)
+  } else {
+    mu_k = c(0, 2)
+  }
+  if(par$tau_eq[j]){
+    tau_k = c(2, 2)
+  } else {
+    tau_k = c(2, 5)
+  } 
+  if(par$lam_eq[j]){
+    lam_k = c(1, 1)
+  } else {
+    lam_k = c(1, -1)
+  }
+  G = rep(c(1, 2), each = n)
+  X = c(rnorm(n, mu_k[1]), rnorm(n, mu_k[2]))
+  Y = rep(tau_k, each = n) + rep(lam_k, each = n)*X + rnorm(2*n)
+  
+  df = data.frame(Y, X, G = as.factor(G))
+  plots[[j]] = ggplot(df, aes(y = Y, x = X, color = G)) + 
+    geom_point() + 
+    geom_smooth(method = "lm") +
+    geom_smooth(inherit.aes = F, aes(y = Y, x = X), method = "lm") +
+    ggtitle(paste("Tau", ifelse(par$tau_eq[j], "equal", "diff"),
+                  "Lambda", ifelse(par$lam_eq[j], "equal", "diff"),
+                  "Eta", ifelse(par$eta_eq[j], "equal", "diff")
+    ))
+}
+library(egg)
+ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], nrow = 2)
+ggarrange(plots[[5]], plots[[6]], plots[[7]], plots[[8]], nrow = 2)
+
+
+plots
+
+
+
+# SCALAR VIOLATION
+n = 1000
+nsim = 1000
+alpha_bias = alpha_est = numeric(nsim)
+beta_bias  = beta_est = numeric(nsim)
+phi_est = numeric(nsim)
+mu_est = numeric(nsim)
+p = 0.6
+tau = c(4, 4)
+lam = c(0, 10)
+
+# eta parameters
+mu = c(0, 1)
+phi = c(1, 1)
+
+tau[1] - tau[2]
+(-lam[1]) * (mu[1] - mu[2])
+r1_est = r2_est = numeric(nsim)
+for(j in 1:nsim){
+  G = rbinom(n, 1, p)
+  G[G == 0] = 2 # for more efficient coding
+  eta = sapply(G, function(l) rnorm(1, mu[l], sqrt(phi[l])))
+  Y = tau[G] + lam[G]*eta + rnorm(n, 0, 0.25)
+  #plot(Y~eta, col = G)
+  
+  fit = lm(Y ~ eta)
+  r1_est[j] = mean(Y[G == 1] - predict(fit)[G==1])
+  r2_est[j] = mean(Y[G == 2] - predict(fit)[G==2])
+}
+hist(r1_est, freq = F, xlim = range(c(r1_est, r2_est)))
+hist(r2_est, freq = F, add = T)
+
+tau = c(4, 5)
+lam = c(1, 1)
+
+# eta parameters
+mu = c(1.5, 0.5)
+phi = c(1, 2.5)
+
+G = rbinom(n, 1, p)
+G[G == 0] = 2 # for more efficient coding
+eta = sapply(G, function(l) rnorm(1, mu[l], sqrt(phi[l])))
+Y = tau[G] + lam[G]*eta + rnorm(n, 0, 0.25)
+plot(Y~eta, col = G)
+
+
+
+
+
+x = seq(-10, 10, l = 500)
+plot(x, 0.5 - 0.5^3 * x^2 / (1+ (x/2)^2), type = "l")
+
+x = 1000
+max(0.5^3 * x^2 / (1+ (x/2)^2))
+
+
+
+
+
+
+
+install.packages("rootSolve")
+f = function(tau_1, tau_2, mu_1, mu_2, lam_1, lam_2){
+  (tau_1 - tau_2)/2 + 0.5*lam_1*mu_1 - 0.5*lam_2*mu_2 - (0.5^2 * (tau_1*(mu_1 - mu_2) - tau_2*(mu_1-mu_2)) +
+                                                           lam_1 * 0.5*(1 + 0.5 * mu_1^2 - 0.5*mu_1*mu_2) +
+                                                           lam_2 * 0.5*(1 + 0.5 * mu_2^2 - 0.5*mu_1*mu_2))/(1 + ((mu_1 - mu_2)/2)^2) * 
+    (mu_1 - mu_2)/2}
+library(rootSolve)
+multiroot(f, c(tau_1 = 1, tau_2 = 1, 
+               mu_1 = 1, mus_2 = 1, 
+               lam_1 = 1, lam_2 = 1))
+
+f(1, 1, 1, 1, 1, 1)
+
+G = rmultinom(1000, 1, c(1, 1, 1))
+G[,1]
+
+eta = apply(G,2, function(x) rnorm(1, which(x == 1)))
+dim(G)
+
+
+
+
+
+
+
+
+
 
 
