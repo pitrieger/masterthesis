@@ -1,6 +1,8 @@
 library(tidyverse)
 library(here)
 library(stargazer)
+library(grid)
+library(ggpubr)
 
 mostrecent = list.files(here("data"))[list.files(here("data")) %>% 
   str_extract(., "\\d{4}-\\d{2}-\\d{2}_\\d{4}") %>%
@@ -39,8 +41,8 @@ ggsavewrap = function(x, ...){
 sensspec_layer = list(geom_pointrange(alpha = 0.7),
                       geom_line(show.legend = F, alpha = 0.7),
                       scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)),
-                      scale_color_brewer(type = "qual", palette = 2),
-                      scale_shape_manual(values = c(0, 1, 2, 15, 16, 17)),
+                      scale_color_brewer(na.translate = F, type = "qual", palette = 2),
+                      scale_shape_manual(na.translate = F, values = c(15, 17, 19, 5, 4, 8)),
                       theme_bw(),
                       theme(strip.background = element_rect(color = "black", fill = "white")))
 
@@ -77,8 +79,8 @@ out_df %>%
                           sensitivity = get_sensspec(out_df_sum)$est,
                           specificity = get_sensspec(out_df_sum, type = "specificity")$est)
   out_df_sum$method = factor(out_df_sum$method, 
-                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                             levels = c("ni_J", "ni_M", "ni_M_bonf", "ni_C", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "MInd (Bonf.)", "CR", "CR (Bonf.)", "BV", "R1", "R2"))
   out_df_sum_both = out_df_sum %>% arrange(method)
   stargazer(out_df_sum_both, summary = F)
   
@@ -94,8 +96,8 @@ out_df %>%
                           sensitivity = get_sensspec(out_df_sum)$est,
                           specificity = get_sensspec(out_df_sum, type = "specificity")$est)
   out_df_sum$method = factor(out_df_sum$method, 
-                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                             levels = c("ni_J", "ni_M", "ni_M_bonf", "ni_C", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "MInd (Bonf.)", "CR", "CR (Bonf.)", "BV", "R1", "R2"))
   out_df_sum_intercept = out_df_sum %>% arrange(method)
   stargazer(out_df_sum_intercept, summary = F)
   
@@ -111,8 +113,8 @@ out_df %>%
                           sensitivity = get_sensspec(out_df_sum)$est,
                           specificity = get_sensspec(out_df_sum, type = "specificity")$est)
   out_df_sum$method = factor(out_df_sum$method, 
-                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                             levels = c("ni_J", "ni_M", "ni_M_bonf", "ni_C", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "MInd (Bonf.)", "CR", "CR (Bonf.)", "BV", "R1", "R2"))
   out_df_sum_loading = out_df_sum %>% arrange(method)
   stargazer(out_df_sum_loading, summary = F)
   
@@ -127,8 +129,8 @@ out_df %>%
                           n = out_df_sum$TP + out_df_sum$TN + out_df_sum$FP + out_df_sum$FN,
                           specificity = get_sensspec(out_df_sum, type = "specificity")$est)
   out_df_sum$method = factor(out_df_sum$method, 
-                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                             levels = c("ni_J", "ni_M", "ni_M_bonf", "ni_C", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                             labels = c("J", "MInd", "MInd (Bonf.)", "CR", "CR (Bonf.)", "BV", "R1", "R2"))
   out_df_sum0 = out_df_sum %>% arrange(method)
   stargazer(out_df_sum0, summary = F)
   
@@ -140,7 +142,7 @@ out_df %>%
            function(x) identical(x, out_df_sum_both$method))
     #bind
     out_df_sum_all = data.frame(method = out_df_sum_both$method,
-#                                n = out_df_sum_both$n,
+                                n = out_df_sum_both$n,
                                 Sens_both = out_df_sum_both$sensitivity,
                                 Spec_both = out_df_sum_both$specificity,
                                 Sens_intercept = out_df_sum_intercept$sensitivity,
@@ -150,8 +152,64 @@ out_df %>%
                                 Spec_0 = out_df_sum0$specificity)
     stargazer(out_df_sum_all, summary = F)
 
+    #missing classifications due to errors:
     min(c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n))
+    8*sum(sim_param_df$p * sim_param_df$nsim) - sum(c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n))
+  
     
+    # ROC plot version of table
+    p1 = ggplot(out_df_sum_both, aes(y = sensitivity, x = 1-specificity, color = method, shape = method)) + 
+      geom_point(size = 2.5) +
+      geom_abline(intercept = 0, slope = 1, color = "grey25") + 
+      coord_fixed() +
+      scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
+      scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      theme_bw() +
+      labs(x = "1 - Specificity", y = "Sensitivity") +
+      theme(legend.title = element_blank())
+    p2 = ggplot(out_df_sum_intercept, aes(y = sensitivity, x = 1-specificity, color = method, shape = method)) + 
+      geom_point(size = 2.5) +
+      geom_abline(intercept = 0, slope = 1, color = "grey25") + 
+      coord_fixed() +
+      scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
+      scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      theme_bw() +
+      labs(x = "1 - Specificity", y = "Sensitivity") +
+      theme(legend.title = element_blank())
+    p3 = ggplot(out_df_sum_loading, aes(y = sensitivity, x = 1-specificity, color = method, shape = method)) + 
+      geom_point(size = 2.5) +
+      geom_abline(intercept = 0, slope = 1, color = "grey25") + 
+      coord_fixed() +
+      scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
+      scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      theme_bw() +
+      labs(x = "1 - Specificity", y = "Sensitivity") +
+      theme(legend.title = element_blank())
+    out_df_sum0$method = factor(out_df_sum0$method, levels = rev(levels(out_df_sum0$method)))
+    p4 = ggplot(out_df_sum0, aes(y = method, x = 1-specificity, fill = method)) + 
+      geom_bar(stat = "identity", show.legend = T) + 
+      coord_fixed(ratio = 1/8) + 
+      scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      theme_bw() +
+      labs(y = "1 - Specificity") +
+      theme(legend.title = element_blank(),
+            axis.title.y = element_blank())
+    
+    p1234 = ggarrange(p1 + theme(axis.title.y = element_text(vjust = -13)), 
+                      p2 + theme(axis.title.y = element_text(vjust = -13)), 
+                      p3 + theme(axis.title.y = element_text(vjust = -13)), 
+                      p4,
+                      labels = c("A)", "B)", "C)", "D)"),
+              ncol = 2, nrow = 2, 
+              common.legend = T, legend = "right",
+              align = "hv")
+    p1234
+    ggsavewrap("ROC_simultaneousMetricScalar.pdf", width = 8, height = 5)
+    
+      
   #########################
   ## Function of n, p, k ##
   #########################
@@ -164,8 +222,8 @@ out_df %>%
   
   out_df_npk_sens = cbind(out_df_npk, get_sensspec(out_df_npk)[,2:4])
   out_df_npk_sens$method = factor(out_df_npk_sens$method, 
-                                  levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                                  labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                                  levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                                  labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
   
   ggplot(out_df_npk_sens, aes(y = est, ymin = lowerCI, ymax = upperCI,
                       x = n, color = method, shape = method)) + 
@@ -191,8 +249,8 @@ out_df %>%
   
   out_df_gh_sens = cbind(out_df_gh, get_sensspec(out_df_gh)[,2:4])
   out_df_gh_sens$method = factor(out_df_gh_sens$method, 
-                           levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                           labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                                 levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                                 labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
   
   ggplot(out_df_gh_sens, aes(y = est, ymin = lowerCI, ymax = upperCI,
                        x = g, color = method, shape = method)) + 
@@ -211,8 +269,8 @@ out_df %>%
   #########################
   out_df_npk_spec = cbind(out_df_npk, get_sensspec(out_df_npk, type = "specificity")[,2:4])
   out_df_npk_spec$method = factor(out_df_npk_spec$method, 
-                             levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                             labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                                  levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                                  labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
   
   ggplot(out_df_npk_spec, aes(y = est, ymin = lowerCI, ymax = upperCI,
                          x = n, color = method, shape = method)) + 
@@ -230,8 +288,8 @@ out_df %>%
   #######################
   out_df_gh_spec = cbind(out_df_gh, get_sensspec(out_df_gh, type = "specificity")[,2:4])
   out_df_gh_spec$method = factor(out_df_gh_spec$method, 
-                            levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                            labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
+                                 levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                                 labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
   
   ggplot(out_df_gh_spec, aes(y = est, ymin = lowerCI, ymax = upperCI,
                         x = g, color = method, shape = method)) + 
@@ -242,40 +300,7 @@ out_df %>%
     labs(y = "Specificity", x = "g", color = "Method", shape = "Method")
   ggsavewrap("Specificity_linegrid_gh.pdf", width = 8, height = 2)
   
-#####################################
-## Effect of magnitude of bias     ##
-#####################################
-  out_df_bias = out_df %>% # filter(interceptbias > 0 & loadingbias > 0) %>%
-    group_by(method, interceptbias, loadingbias) %>%
-    summarize(TP = sum(TP, na.rm = T),
-              TN = sum(TN, na.rm = T),
-              FP = sum(FP, na.rm = T),
-              FN = sum(FN, na.rm = T))
-  
-  out_df_bias_sensspec = rbind(cbind(out_df_bias, get_sensspec(out_df_bias)[,2:4], perform = "Sensitivity"),
-                           cbind(out_df_bias, get_sensspec(out_df_bias, type = "specificity")[,2:4], perform = "Specificity"))
-  
-  out_df_bias_sensspec$method = factor(out_df_bias_sensspec$method, 
-                                       levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                                       labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
-  
-  ggplot(out_df_bias_sensspec, aes(y = est, ymin = lowerCI, ymax = upperCI,
-                              x = method, color = perform)) + 
-    geom_pointrange(alpha = 0.7) +
-    facet_grid(rows = vars(interceptbias), cols = vars(loadingbias),
-               labeller = function(x) label_both(x, sep = " = ")) +
-    labs(y = "Sensitivity / Specificity") +
-    scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.2)) +
-    scale_color_manual(values = c("black", "orangered")) +
-    theme_bw() +
-    theme(strip.background = element_rect(color = "black", fill = "white"),
-          axis.title.x = element_blank(),
-          legend.title = element_blank())
-    
-ggsavewrap("SensSpec_dotplot_biasmagnitude.pdf", width = 8, height = 5)
-  
-  
-  
+
 #######################
 #### Zero itembias ####
 #######################
@@ -294,9 +319,9 @@ ggsavewrap("SensSpec_dotplot_biasmagnitude.pdf", width = 8, height = 5)
               FN = sum(FN, na.rm = T))
   out_df_0bias = cbind(out_df_0bias, get_sensspec(out_df_0bias, type = "specificity")[,2:4])  
   out_df_0bias$method = factor(out_df_0bias$method, 
-                               levels = c("ni_J", "ni_M", "ni_C", "ni_B", "ni_R1", "ni_R2"),
-                               labels = c("J", "MInd", "CR", "BV", "R1", "R2"))
- 
+                               levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
+                               labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
+  
   ggplot(out_df_0bias, aes(y = est, ymin = lowerCI, ymax = upperCI,
                          x = n, color = method, shape = method)) + 
     sensspec_layer + 
@@ -305,4 +330,3 @@ ggsavewrap("SensSpec_dotplot_biasmagnitude.pdf", width = 8, height = 5)
     labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
   ggsavewrap("Specificity_lineplot_0bias.pdf", width = 8, height = 3)
   
-
