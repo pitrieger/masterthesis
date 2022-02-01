@@ -326,6 +326,14 @@ stargazer(Castanho.out, summary = F)
 
 
 # ALL RESULTS ----
+Akker.out
+CSES.out
+ES.out
+OR.out
+Stan.out
+Schulz.out
+Castanho.out
+
 stargazer(Akker.out, summary = F)
 stargazer(CSES.out, summary = F)
 stargazer(ES.out, summary = F)

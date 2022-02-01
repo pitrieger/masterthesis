@@ -93,7 +93,7 @@ detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05, detectio
 
 detectMulti_Rieger_step = function(varnames, base_model, data, alpha = 0.05, detection.type = "both"){
   model_it = base_model
-  detected = detectMulti_Rieger(varnames, base_model, data, alpha)
+  detected = detectMulti_Rieger(varnames, base_model, data, alpha, detection.type)
   
   p.val.min = min(detected$p.vals)
   varnames_it = varnames
