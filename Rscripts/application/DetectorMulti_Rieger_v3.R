@@ -87,7 +87,7 @@ detectMulti_Rieger = function(varnames, base_model, data, alpha = 0.05, detectio
   }
   
   list(varnames = varnames,
-       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(p.vals) + 1))], # Bonferroni-holm
+       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(order(p.vals)) + 1))], # Bonferroni-holm
        p.vals = p.vals)
 }
 

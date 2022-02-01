@@ -51,8 +51,9 @@ detect_Rieger = function(varnames, data, alpha = 0.05, detection.type = "both"){
   } else if(detection.type == "metric"){
     p.vals = get_pval_metric(X, hat.eta, grp)
   }
+
   list(varnames = varnames,
-       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(p.vals) + 1))], # Bonferroni-holm
+       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(order(p.vals)) + 1))], # Bonferroni-holm
        p.vals = p.vals)
 }
 
@@ -71,7 +72,7 @@ detect_Rieger_step = function(varnames, data, alpha = 0.05, detection.type = "bo
     if(length(varnames_it) <= 1){
       break
     }
-    detected = detect_Rieger(varnames_it, data, alpha)
+    detected = detect_Rieger(varnames_it, data, alpha, detection.type)
     p.val.min = length(varnames_it)*min(detected$p.vals) # Bonferroni-Holm
   }
   list(varnames = varnames,

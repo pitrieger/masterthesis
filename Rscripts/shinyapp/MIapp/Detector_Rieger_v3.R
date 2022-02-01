@@ -29,7 +29,7 @@ detect_Rieger = function(varnames, data, alpha = 0.05){
   grp = data$grp
   p.vals = get_pval(X, hat.eta, grp)
   list(varnames = varnames,
-       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(p.vals) + 1))], # Bonferroni-holm
+       noninvariant = varnames[which(p.vals < alpha/(length(p.vals) - order(order(p.vals)) + 1))], # Bonferroni-holm
        p.vals = p.vals)
 }
 
