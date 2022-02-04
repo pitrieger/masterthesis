@@ -4,10 +4,11 @@ library(stargazer)
 library(grid)
 library(ggpubr)
 
-mostrecent = list.files(here("data"))[list.files(here("data")) %>% 
+mostrecent = list.files(here("publicdata"))[list.files(here("publicdata")) %>% 
   str_extract(., "\\d{4}-\\d{2}-\\d{2}_\\d{4}") %>%
   as.Date(., format = "%Y-%m-%d_%H%M") %>% which.max]
-load(here("data", mostrecent))
+
+load(here("publicdata", mostrecent))
 
 get_sensspec = function(x, alpha = 0.05, type = "sensitivity"){
   stopifnot(type %in% c("sensitivity", "specificity"))
@@ -224,11 +225,12 @@ out_df %>%
   out_df_npk_sens$method = factor(out_df_npk_sens$method, 
                                   levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
                                   labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
+  out_df_npk_sens$m = out_df_npk_sens$k
   
   ggplot(out_df_npk_sens, aes(y = est, ymin = lowerCI, ymax = upperCI,
                       x = n, color = method, shape = method)) + 
     sensspec_layer + 
-    facet_grid(rows = vars(k), cols = vars(p),
+    facet_grid(rows = vars(m), cols = vars(p),
                labeller = function(x) label_both(x, sep = " = ")) +
     scale_x_continuous(breaks = c(100, 200, 500, 1000)) +
     labs(y = "Sensitivity", x = "n", color = "Method", shape = "Method") +
@@ -271,11 +273,12 @@ out_df %>%
   out_df_npk_spec$method = factor(out_df_npk_spec$method, 
                                   levels = c("ni_J", "ni_M_bonf", "ni_C_bonf", "ni_B", "ni_R1", "ni_R2"),
                                   labels = c("J", "MInd (Bonf.)", "CR (Bonf.)", "BV", "R1", "R2"))
+  out_df_npk_spec$m = out_df_npk_spec$k
   
   ggplot(out_df_npk_spec, aes(y = est, ymin = lowerCI, ymax = upperCI,
                          x = n, color = method, shape = method)) + 
     sensspec_layer + 
-    facet_grid(rows = vars(k), cols = vars(p),
+    facet_grid(rows = vars(m), cols = vars(p),
                labeller = function(x) label_both(x, sep = " = ")) +
     scale_x_continuous(breaks = c(100, 200, 500, 1000)) +
     labs(y = "Specificity", x = "n", color = "Method", shape = "Method") + 
@@ -329,5 +332,3 @@ out_df %>%
     scale_x_continuous(breaks = c(100, 200, 500, 1000)) +
     labs(y = "Specificity", x = "n", color = "Method", shape = "Method")
   ggsavewrap("Specificity_lineplot_0bias.pdf", width = 8, height = 3)
-  
-  
