@@ -5,9 +5,10 @@ This is an attempt at writing a transparent master thesis. Find the proposal for
 This repo contains all the resources to replicate the simulation study and application with the exception of data from Castanho et al.'s (2020) paper, which can be downloaded from the authors' own repo [here](https://github.com/bcastanho/PRQ2019). All relevant scripts are included in the folder [/Rscripts](https://github.com/pitrieger/masterthesis/tree/main/Rscripts). The implementations of the detection methods for single- and multi-factor models are contained in the sub-folders [/simulation](https://github.com/pitrieger/masterthesis/tree/main/Rscripts/simulation) and [/application](https://github.com/pitrieger/masterthesis/tree/main/Rscripts/application), respectively, which corresponds with where they are used in the paper. Within these folders, the main scripts for running and analyzing the simulation study are [Simulation_final.R](https://github.com/pitrieger/masterthesis/blob/main/Rscripts/simulation/Simulation_final.R) and [Analysis_final.R](https://github.com/pitrieger/masterthesis/blob/main/Rscripts/simulation/Analysis_final.R), respectively. The main script for running the application is [application_main.R](https://github.com/pitrieger/masterthesis/blob/main/Rscripts/application/application_main.R).
 
 ## Current work
-Doing some final work on application section, adding theorem for novel method, polish
+Doing some final polishing and proofreading.
 
 ## Open Questions
+
 
 ## Log
 - 16/08/2021 - Finished initial proposal
@@ -25,6 +26,7 @@ Doing some final work on application section, adding theorem for novel method, p
 - 01/2022 - Programmed Shiny app for interactive version of simulation study
 - 01/2022 - Formalized idea of novel method (to be added to draft)
 - 02/2022 - Ran final version of simulation study
+- 02/2022 - Added formalized novel method introduction
 
 
 <!--- ![70%](https://progress-bar.dev/70) --->

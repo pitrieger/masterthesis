@@ -155,4 +155,4 @@ run_sim = function(x) {
 # replicate within parallel
 out.time = system.time(out <- mclapply(sim_out, function(x) replicate(x$sim_param$nsim, run_sim(x))))
 out.sysinfo = Sys.info()
-save.image(here(paste0("data/Prelim_Sim_", format(Sys.time(), "%Y-%m-%d_%H%M"), ".RData")))
+save.image(here(paste0("data/Sim_", format(Sys.time(), "%Y-%m-%d_%H%M"), ".RData")))
