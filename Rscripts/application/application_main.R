@@ -292,7 +292,7 @@ Castanho.model = '
 antiel =~ antiel23 + rwpop8.r + antiel21
 people =~ gewill17 + simple8.r + gewill3
 manich =~ manich15 + manich13.r + manich14
-method =~ 1*gewill3 + b1*antiel23 +  b1*antiel21 + b1*gewill17 + b1*manich15 + b1*manich14
+method =~ gewill3 + b1*antiel23 +  b1*antiel21 + b1*gewill17 + b1*manich15 + b1*manich14
 method ~~ 0*antiel + 0*people + 0*manich
 '
 
