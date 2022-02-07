@@ -42,7 +42,9 @@ ggsavewrap = function(x, ...){
 sensspec_layer = list(geom_pointrange(alpha = 0.7),
                       geom_line(show.legend = F, alpha = 0.7),
                       scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, 0.2)),
+                      #scale_color_discrete(na.translate = F),
                       scale_color_brewer(na.translate = F, type = "qual", palette = 2),
+                      #scale_color_manual(na.translate = F, values = c("#1B9E77","#7570B3","#66A61E","#E6AB02","#A6761D","#666666")),
                       scale_shape_manual(na.translate = F, values = c(15, 17, 19, 5, 4, 8)),
                       theme_bw(),
                       theme(strip.background = element_rect(color = "black", fill = "white")))
@@ -143,7 +145,7 @@ out_df %>%
            function(x) identical(x, out_df_sum_both$method))
     #bind
     out_df_sum_all = data.frame(method = out_df_sum_both$method,
-                                n = out_df_sum_both$n,
+                                n = out_df_sum_intercept$n,
                                 Sens_both = out_df_sum_both$sensitivity,
                                 Spec_both = out_df_sum_both$specificity,
                                 Sens_intercept = out_df_sum_intercept$sensitivity,
@@ -155,6 +157,7 @@ out_df %>%
 
     #missing classifications due to errors:
     min(c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n))
+    c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n) - 109200
     8*sum(sim_param_df$p * sim_param_df$nsim) - sum(c(out_df_sum_both$n, out_df_sum_intercept$n, out_df_sum_loading$n, out_df_sum0$n))
   
     
@@ -166,6 +169,7 @@ out_df %>%
       scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
       scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
       labs(x = "1 - Specificity", y = "Sensitivity") +
       theme(legend.title = element_blank())
@@ -176,6 +180,7 @@ out_df %>%
       scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
       scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
       labs(x = "1 - Specificity", y = "Sensitivity") +
       theme(legend.title = element_blank())
@@ -186,14 +191,16 @@ out_df %>%
       scale_shape_manual(values = c(15, 2, 17, 1, 19, 5, 4, 8)) + 
       scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
       labs(x = "1 - Specificity", y = "Sensitivity") +
       theme(legend.title = element_blank())
     out_df_sum0$method = factor(out_df_sum0$method, levels = rev(levels(out_df_sum0$method)))
     p4 = ggplot(out_df_sum0, aes(y = method, x = 1-specificity, fill = method)) + 
-      geom_bar(stat = "identity", show.legend = T) + 
+      geom_bar(stat = "identity", show.legend = F) + 
       coord_fixed(ratio = 1/8) + 
       scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
+      scale_fill_manual(values = rev(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
       labs(y = "1 - Specificity") +
       theme(legend.title = element_blank(),
