@@ -7,7 +7,10 @@ get_pvalMulti = function(data, hat.eta, grp, models, varnames){
   
   # identify which latent variables underly each item
   covariates = sapply(varnames, function(vn) which(grepl(vn, models)))
-
+  
+  # identify technical LVs that have constrained parameters
+  technicalLV = which(grepl("\\*", models))
+  
   p.vals = rep(1,length(varnames))
   for(j in 1:length(covariates)){
       # relevant LV for item j
@@ -16,7 +19,10 @@ get_pvalMulti = function(data, hat.eta, grp, models, varnames){
       R = resid(lm(data[,varnames[j]] ~ hat.eta.j))
       # group means
       aov.p = summary(aov(R ~ as.factor(grp)))[[1]]$`Pr(>F)`[1]
-
+      
+      # remove technical LV for testing
+      hat.eta.j = as.matrix(hat.eta[, covariates[[j]][!covariates[[j]] %in% technicalLV]])
+      
     for(i in 1:ncol(hat.eta.j)){
       # group correlations
       cor.p = numeric(g)
@@ -38,6 +44,9 @@ get_pvalMulti_metric = function(data, hat.eta, grp, models, varnames){
   # identify which latent variables underly each item
   covariates = sapply(varnames, function(vn) which(grepl(vn, models)))
   
+  # identify technical LVs that have constrained parameters
+  technicalLV = which(grepl("\\*", models))
+  
   p.vals = rep(1,length(varnames))
   for(j in 1:length(covariates)){
     # relevant LV for item j
@@ -46,15 +55,18 @@ get_pvalMulti_metric = function(data, hat.eta, grp, models, varnames){
     # get residuals
     R = resid(lm(data[,varnames[j]] ~ hat.eta.j))
     
+    # remove technical LV for testing
+    hat.eta.j = as.matrix(hat.eta[, covariates[[j]][!covariates[[j]] %in% technicalLV]])
+    
     cor.p = 1
     for(i in 1:ncol(hat.eta.j)){
       hat.eta.ji = hat.eta.j[,i]
       fit = lm(R ~ hat.eta.ji*as.factor(grp))
-      cor.p = min(cor.p, ncol(hat.eta.j)*anova(fit)["hat.eta.ji:as.factor(grp)", "Pr(>F)"])
+      cor.p = min(cor.p, anova(fit)["hat.eta.ji:as.factor(grp)", "Pr(>F)"])
     }
     
     # save pval if lower than existing one
-    p.vals[j] = min(p.vals[j], length(covariates)*cor.p)
+    p.vals[j] = min(p.vals[j], ncol(hat.eta.j)*cor.p)
   }
   pmin(1, p.vals)
 }
