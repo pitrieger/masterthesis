@@ -171,8 +171,10 @@ out_df %>%
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
-      labs(x = "1 - Specificity", y = "Sensitivity") +
-      theme(legend.title = element_blank())
+      labs(x = "1 - Specificity", y = "Sensitivity",
+           title = "Simultaneous Violation") +
+      theme(legend.title = element_blank(),
+            plot.title = element_text(hjust = 0.5, face = "bold"))
     p2 = ggplot(out_df_sum_intercept, aes(y = sensitivity, x = 1-specificity, color = method, shape = method)) + 
       geom_point(size = 2.5) +
       geom_abline(intercept = 0, slope = 1, color = "grey25") + 
@@ -182,8 +184,10 @@ out_df %>%
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
-      labs(x = "1 - Specificity", y = "Sensitivity") +
-      theme(legend.title = element_blank())
+      labs(x = "1 - Specificity", y = "Sensitivity",
+           title = "Violation of Scalar MI") +
+      theme(legend.title = element_blank(),
+            plot.title = element_text(hjust = 0.5, face = "bold"))
     p3 = ggplot(out_df_sum_loading, aes(y = sensitivity, x = 1-specificity, color = method, shape = method)) + 
       geom_point(size = 2.5) +
       geom_abline(intercept = 0, slope = 1, color = "grey25") + 
@@ -193,8 +197,10 @@ out_df %>%
       scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_color_manual(values = c(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
-      labs(x = "1 - Specificity", y = "Sensitivity") +
-      theme(legend.title = element_blank())
+      labs(x = "1 - Specificity", y = "Sensitivity",
+           title = "Violation of Metric MI") +
+      theme(legend.title = element_blank(),
+            plot.title = element_text(hjust = 0.5, face = "bold"))
     out_df_sum0$method = factor(out_df_sum0$method, levels = rev(levels(out_df_sum0$method)))
     p4 = ggplot(out_df_sum0, aes(y = method, x = 1-specificity, fill = method)) + 
       geom_bar(stat = "identity", show.legend = F) + 
@@ -202,10 +208,12 @@ out_df %>%
       scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.2)) + 
       scale_fill_manual(values = rev(c("#1B9E77", "#D95F02", "#D95F02", "#7570B3", "#7570B3", "#E7298A", "#66A61E", "#E6AB02"))) +
       theme_bw() +
-      labs(y = "1 - Specificity") +
+      labs(y = "1 - Specificity",
+           title = "Perfect MI") +
       theme(legend.title = element_blank(),
-            axis.title.y = element_blank())
-    
+            axis.title.y = element_blank(),
+            plot.title = element_text(hjust = 0.5, face = "bold"))
+      
     p1234 = ggarrange(p1 + theme(axis.title.y = element_text(vjust = -13)), 
                       p2 + theme(axis.title.y = element_text(vjust = -13)), 
                       p3 + theme(axis.title.y = element_text(vjust = -13)), 

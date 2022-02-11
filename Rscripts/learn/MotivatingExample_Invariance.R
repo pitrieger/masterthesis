@@ -24,8 +24,10 @@ p1 = ggplot(df1, aes(x = x, y = y, color = envir, fill = envir)) +
   scale_x_continuous(breaks = seq(-1, 4, 1)) + 
   scale_y_continuous(limits = c(-3, 3), breaks = seq(-3, 3, 1.5)) + 
   labs(x = expression(eta),
-       y = expression(r)) + 
-  theme_minimal()
+       y = expression(r),
+       title = "Perfect MI") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
 # unequal taus
 Y2 = (envir == 2)*0.9 + 0.6 * eta + rnorm(n, 0.5)
@@ -44,8 +46,10 @@ p2 = ggplot(df2, aes(x = x, y = y, color = envir, fill = envir)) +
   scale_x_continuous(breaks = seq(-1, 4, 1)) + 
   scale_y_continuous(breaks = seq(-3, 3, 1.5)) + 
   labs(x = expression(eta),
-       y = expression(r)) + 
-  theme_minimal()
+       y = expression(r),
+       title = "Violation of Scalar MI") + 
+  theme_minimal()+ 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 p2
 
 # unequal lambdas
@@ -65,8 +69,10 @@ p3 = ggplot(df3, aes(x = x, y = y, color = envir, fill = envir)) +
   scale_x_continuous(breaks = seq(-1, 4, 1)) + 
   scale_y_continuous(breaks = seq(-3, 3, 1.5)) + 
   labs(x = expression(eta),
-       y = expression(r)) + 
-  theme_minimal()
+       y = expression(r),
+       title = "Violation of Metric MI") + 
+  theme_minimal()+ 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 p3
 
 # unequal lambdas & taus
@@ -86,8 +92,10 @@ p4 = ggplot(df4, aes(x = x, y = y, color = envir, fill = envir)) +
   scale_x_continuous(breaks = seq(-1, 4, 1)) + 
   scale_y_continuous(breaks = seq(-3, 3, 1.5)) + 
   labs(x = expression(eta),
-       y = expression(r)) + 
-  theme_minimal()
+       y = expression(r),
+       title = "Simultaneous Violation") + 
+  theme_minimal()+ 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
 # save
 ggarrange(p1, p2, p3, p4,
